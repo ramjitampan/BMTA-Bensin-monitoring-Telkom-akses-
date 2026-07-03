@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚗 Sistem Monitoring BBM Kendaraan Operasional
+# Sistem Monitoring BBM Kendaraan Operasional
 
 <br/>
 
@@ -24,7 +24,11 @@
 
 <br/>
 
-![Status](https://img.shields.io/badge/Status-Dalam%20Pengembangan-yellow?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Development-yellow?style=for-the-badge)
+![Verification](https://img.shields.io/badge/Internal-Verification-orange?style=for-the-badge)
+![REST API](https://img.shields.io/badge/REST%20API-v1-2E8B57?style=for-the-badge)
+![AI](https://img.shields.io/badge/AI-Ollama%20%2B%20Gemma-6E56CF?style=for-the-badge)
+![Excel Export](https://img.shields.io/badge/Excel-Export-1D6F42?style=for-the-badge&logo=microsoftexcel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-MariaDB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
@@ -45,6 +49,16 @@ Sistem Monitoring BBM Kendaraan Operasional merupakan aplikasi berbasis web yang
 Sistem ini dibangun sebagai bagian dari kegiatan **Magang Mahasiswa Universitas Negeri Padang** dan telah melalui proses diskusi serta validasi kebutuhan bersama pihak HR dan Head of Regional Office (Head RO) PT. Telkom Akses Binjai.
 
 Aplikasi dirancang untuk **menggantikan proses pencatatan manual** sehingga data penggunaan BBM dapat terdokumentasi dengan lebih rapi, terstruktur, dan mudah dianalisis.
+
+Seiring perkembangan proyek, aplikasi kini telah mendukung cakupan yang lebih luas, meliputi:
+
+- 📊 **Operational Monitoring** — pencatatan dan pemantauan penggunaan BBM kendaraan operasional
+- 📈 **Reporting** — rekapitulasi dan export laporan bulanan
+- 🔌 **REST API** — integrasi data untuk kebutuhan sistem lain / mobile app di masa depan
+- 🤖 **AI Analysis** — analisis efisiensi dan rekomendasi otomatis berbasis AI lokal
+- 📄 **Excel Reporting** — export laporan bulanan mengikuti format pelaporan PT. Telkom Akses
+
+> 🚧 **Catatan:** Saat ini sistem sedang berada dalam tahap **verifikasi internal** oleh pihak **HR** dan **Head of Regional Office (Head RO)** PT. Telkom Akses Binjai, sebelum masuk ke tahap deployment produksi.
 
 ---
 
@@ -85,6 +99,7 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <th>📄 Dokumentasi</th>
     <th>📈 Laporan</th>
     <th>🔌 API</th>
+    <th>🤖 AI Analyst</th>
   </tr>
   <tr>
     <td>Data Pegawai</td>
@@ -92,6 +107,7 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <td>Upload Foto Bon</td>
     <td>Rekap Penggunaan BBM</td>
     <td>API Data Perjalanan</td>
+    <td>Analisis Efisiensi Otomatis</td>
   </tr>
   <tr>
     <td>Data Kendaraan</td>
@@ -99,19 +115,22 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <td>Nomor Bon</td>
     <td>Rekap Efisiensi Pegawai</td>
     <td>API Rekap Monitoring</td>
+    <td>Rekomendasi Otomatis</td>
   </tr>
   <tr>
     <td>Data Perjalanan</td>
     <td>Efisiensi Kendaraan</td>
     <td>Riwayat Perjalanan</td>
-    <td>Dashboard Monitoring</td>
+    <td>Dashboard Monitoring (Operational Dashboard)</td>
     <td>API Detail Perjalanan</td>
+    <td>Berjalan Lokal (Ollama + Gemma)</td>
   </tr>
   <tr>
     <td>Data Pembelian BBM</td>
     <td>Status Balance / Boros / Anomali</td>
     <td></td>
-    <td></td>
+    <td>Export Excel Bulanan (Format PT. Telkom Akses)</td>
+    <td>REST API v1</td>
     <td></td>
   </tr>
 </table>
@@ -166,12 +185,13 @@ Efisiensi    : 230 / 15 = 15,3 km/liter → 🟢 Balance
 ```mermaid
 flowchart TD
     A[🧑‍💼 Admin BBM Input Data] --> B[✅ Validasi Data]
-    B --> C[🧪 Hitung Volume BBM]
-    B --> D[📏 Hitung Jarak Tempuh]
+    B --> C[📏 Hitung Jarak Tempuh]
+    B --> D[🧪 Hitung Volume BBM]
     C --> E[⚙️ Hitung Efisiensi]
     D --> E
 
-    E --> F[🔍 Analisis Monitoring]
+    E --> N[🤖 AI Analyst]
+    N --> F[🔍 Analisis Monitoring]
 
     F --> G[🟢 Balance]
     F --> H[🟡 Boros]
@@ -182,8 +202,7 @@ flowchart TD
     I --> J
 
     J --> K[👤 HR]
-    J --> L[🔍 Supervisor]
-    J --> M[📋 Head RO]
+    K --> L[📋 Head RO]
 ```
 
 ---
@@ -198,6 +217,22 @@ flowchart LR
     D --> B
     B --> E[📊 Monitoring]
     B --> F[📈 Laporan]
+```
+
+---
+
+## 🏗️ Arsitektur Sistem
+
+```mermaid
+flowchart LR
+    A[Browser] --> B[Laravel 13]
+    I[Future Mobile App] --> C[REST API v1]
+    B --> D[(MySQL)]
+    B --> C
+    B --> E[Ollama]
+    E --> F[Google Gemma]
+    F --> G[Dashboard]
+    B --> H[Excel Export]
 ```
 
 ---
@@ -221,18 +256,25 @@ flowchart LR
 | Blade Template | Template engine Laravel |
 | Bootstrap | Komponen UI |
 | AdminLTE | Dashboard admin |
+| AOS (Animate On Scroll) | Animasi transisi antar elemen UI |
+
+### AI & Analisis Otomatis
+| Teknologi | Peran |
+|-----------|-------|
+| Ollama | Runtime untuk menjalankan Large Language Model secara lokal |
+| Google Gemma | Model AI yang digunakan untuk analisis efisiensi & rekomendasi |
 
 ### Library Tambahan
 | Library | Peran |
 |---------|-------|
 | Laravel DOMPDF | Export laporan PDF |
-| Laravel Excel | Export laporan Excel |
+| Laravel Excel | Export laporan Excel bulanan |
 | Laravel Tinker | Debugging & REPL |
 
 ### API
 | Jenis | Format |
 |-------|--------|
-| REST API Laravel | JSON Response |
+| REST API Laravel (v1) | JSON Response |
 
 ---
 
@@ -257,6 +299,40 @@ flowchart LR
 
 ---
 
+## 🤖 AI Integration
+
+Sistem ini telah terintegrasi dengan **Large Language Model (LLM) yang berjalan secara lokal**, menggunakan **Ollama** sebagai runtime dan **Google Gemma** sebagai model AI.
+
+Fitur AI Analyst membantu:
+
+- 📊 Menganalisis pola konsumsi BBM kendaraan operasional
+- ⚙️ Mengevaluasi efisiensi operasional berdasarkan data perjalanan
+- 💡 Memberikan rekomendasi otomatis (misal: kendaraan yang perlu pengecekan, potensi pemborosan, dsb.)
+
+**Poin penting:**
+
+- ✅ AI berjalan **sepenuhnya secara lokal** di server/komputer yang menjalankan Ollama
+- ✅ **Tidak membutuhkan API AI berbayar** dari penyedia cloud manapun
+- ✅ Data kendaraan dan perjalanan tidak perlu dikirim ke pihak ketiga untuk dianalisis
+
+---
+
+## 🔌 REST API v1
+
+REST API Version 1 kini tersedia untuk mendukung integrasi dengan sistem lain maupun pengembangan aplikasi mobile di masa depan.
+
+| Method | Endpoint | Keterangan |
+|--------|----------|------------|
+| GET | `/api/v1/dashboard` | Ringkasan data monitoring BBM |
+| GET | `/api/v1/pegawai` | Daftar data pegawai |
+| GET | `/api/v1/kendaraan` | Daftar data kendaraan |
+| GET | `/api/v1/perjalanan` | Daftar data perjalanan |
+| GET | `/api/v1/ai-analysis` | Hasil analisis & rekomendasi dari AI Analyst |
+
+> Seluruh endpoint mengembalikan response dalam format **JSON**.
+
+---
+
 ## 🗺️ Roadmap Pengembangan
 
 ### ✅ Tahap 1 — Core System (Selesai)
@@ -267,27 +343,35 @@ flowchart LR
 - [x] Upload Bon BBM
 - [x] Monitoring Efisiensi
 - [x] Dashboard Monitoring
-- [x] REST API
+- [x] REST API v1
+- [x] Export Excel Bulanan
+- [x] AI Analyst (Ollama + Google Gemma)
 
-### 🔄 Tahap 2 — Pelaporan (Dalam Rencana)
+### 🔎 Tahap Saat Ini — Verifikasi Internal
+
+- [ ] Validasi oleh HR
+- [ ] Validasi oleh Head of Regional Office (Head RO)
+- [ ] Pengumpulan feedback sebelum deployment produksi
+
+### 🔄 Tahap 2 — Pelaporan Lanjutan (Dalam Rencana)
 
 - [ ] Export PDF
-- [ ] Export Excel
 - [ ] Filter Periode Laporan
 
 ### 📱 Tahap 3 — Mobile & Integrasi (Direncanakan)
 
 - [ ] Aplikasi Mobile Flutter
 - [ ] Dashboard Monitoring Mobile
-- [ ] Integrasi Server Perusahaan
+- [ ] Role Permission (multi-level akses pengguna)
+- [ ] Integrasi Server Perusahaan (Company Deployment)
 
 ---
 
 ## 🚦 Status Proyek
 
-> 🚧 **Dalam Tahap Pengembangan**
+> 🚧 **Development & Internal Verification**
 >
-> Proyek ini dikembangkan sebagai bagian dari kegiatan Magang Mahasiswa Universitas Negeri Padang di PT. Telkom Akses Binjai.
+> Proyek ini dikembangkan sebagai bagian dari kegiatan Magang Mahasiswa Universitas Negeri Padang di PT. Telkom Akses Binjai, dan saat ini sedang berada dalam tahap **verifikasi internal oleh HR dan Head of Regional Office (Head RO)** sebelum masuk ke tahap deployment produksi.
 
 ---
 
@@ -308,6 +392,10 @@ flowchart LR
 ---
 
 <div align="center">
+
+### 🚧 Development & Internal Verification
+
+Proyek ini sedang dikembangkan sebagai bagian dari program magang di PT. Telkom Akses Binjai dan sedang menjalani proses **verifikasi internal oleh HR dan Head of Regional Office** sebelum masuk ke tahap deployment produksi.
 
 <sub>© 2026 · Ramzy Junfaris Hamonangan · PT. Telkom Akses Binjai × Universitas Negeri Padang</sub>
 
