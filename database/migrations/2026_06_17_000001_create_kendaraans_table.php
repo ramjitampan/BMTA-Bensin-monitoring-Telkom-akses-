@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        // PERBAIKAN: sebelumnya file ini memakai Schema::table() padahal
-        // tabel kendaraans belum pernah dibuat. Sekarang pakai Schema::create().
-        Schema::create('kendaraans', function (Blueprint $table) {
-            $table->id();
-            $table->string('plat_nomor')->unique();
-            $table->enum('tipe', ['R2', 'R4'])->default('R4');
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('kendaraans', function (Blueprint $table) {
+        $table->id();
+        $table->string('plat_nomor')->unique();
+        $table->string('merk');
+        $table->enum('tipe', ['R2','R4']);
+        $table->year('tahun');
+        $table->timestamps();
+    });
+}
 
     public function down(): void
     {

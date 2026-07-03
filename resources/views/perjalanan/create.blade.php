@@ -1,447 +1,733 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Data BBM — PT Telkom Akses Binjai</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+        body { background: #f3f4f6; min-height: 100vh; }
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        /* ── Field base ── */
+        .field {
+            display: block; width: 100%;
+            height: 2.625rem;
+            border: 1.5px solid #e5e7eb; border-radius: 0.625rem;
+            background: #fff; padding: 0 0.875rem;
+            font-size: 0.875rem; color: #1f2937;
+            transition: border-color .15s, box-shadow .15s;
+            appearance: none;
+        }
+        .field::placeholder { color: #9ca3af; }
+        .field:focus { outline: none; border-color: #CC0000; box-shadow: 0 0 0 3px rgba(204,0,0,.08); }
+        .field-error { border-color: #ef4444 !important; background: #fff5f5; }
+        .field-readonly { background: #eff6ff; color: #2563eb; font-weight: 600; cursor: not-allowed; }
+        select.field { cursor: pointer; }
+        textarea.field { height: auto; padding: 0.625rem 0.875rem; resize: none; }
+
+        /* ── Label ── */
+        .label {
+            display: block;
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.07em;
+            color: #6b7280; margin-bottom: 0.375rem;
+        }
+        .label-badge {
+            font-size: 0.65rem; font-weight: 500;
+            text-transform: none; letter-spacing: 0;
+            color: #9ca3af; margin-left: 0.25rem;
+        }
+        .label-required { color: #ef4444; margin-left: 0.125rem; }
+
+        /* ── Error / hint ── */
+        .error-msg { margin-top: 0.25rem; font-size: 0.72rem; color: #ef4444; }
+        .hint-msg  { margin-top: 0.3rem;  font-size: 0.72rem; color: #9ca3af; line-height: 1.5; }
+
+        /* ── Card ── */
+        .card {
+            background: #fff; border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+            padding: 1.375rem;
+        }
+        .card-title {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em; color: #CC0000;
+            padding-bottom: 0.875rem; margin-bottom: 1.125rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .card-title svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        /* ── Chip / badge ── */
+        .chip {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-size: 0.7rem; font-weight: 500;
+            padding: 0.25rem 0.625rem; border-radius: 9999px; margin-top: 0.375rem;
+        }
+        .chip-blue   { background: #eff6ff; color: #1d4ed8; }
+        .chip-green  { background: #f0fdf4; color: #16a34a; }
+        .chip-red    { background: #fef2f2; color: #dc2626; }
+        .chip-amber  { background: #fffbeb; color: #d97706; }
+
+        /* ── Alert box ── */
+        .alert {
+            border-radius: 0.625rem; padding: 0.75rem 0.875rem;
+            font-size: 0.75rem; line-height: 1.65;
+        }
+        .alert-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+        .alert-blue  { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+        .alert-red   { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+
+        /* ── Step wizard ── */
+        .wizard { display: flex; gap: 0; border-radius: 0.875rem; overflow: hidden; border: 1.5px solid #e5e7eb; background: #fff; }
+        .wizard-step {
+            flex: 1; display: flex; align-items: center; gap: 0.625rem;
+            padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 500;
+            color: #9ca3af; cursor: pointer;
+            border-right: 1.5px solid #e5e7eb;
+            transition: background .2s, color .2s;
+        }
+        .wizard-step:last-child { border-right: none; }
+        .wizard-step.is-active { background: #CC0000; color: #fff; }
+        .wizard-step.is-done   { background: #f0fdf4; color: #16a34a; }
+        .wizard-num {
+            width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; font-weight: 700;
+            border: 1.5px solid currentColor;
+        }
+        .wizard-step.is-active .wizard-num { background: #fff; color: #CC0000; border-color: #fff; }
+        .wizard-step.is-done   .wizard-num { background: #16a34a; color: #fff; border-color: #16a34a; }
+
+        /* ── Progress bar ── */
+        .progress-track { height: 3px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+        .progress-fill  { height: 100%; background: #CC0000; border-radius: 9999px; transition: width .35s ease; }
+
+        /* ── Preview cards ── */
+        .preview-wrap {
+            display: none;
+            border-radius: 0.875rem; border: 1px solid #bfdbfe;
+            background: #eff6ff; padding: 1rem;
+        }
+        .preview-wrap.is-visible { display: block; animation: fadeUp .2s ease; }
+        .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; margin-top: 0.75rem; }
+        .pv-card {
+            background: #fff; border-radius: 0.75rem;
+            border: 1.5px solid #dbeafe; padding: 0.75rem;
+            text-align: center; transition: border-color .2s;
+        }
+        .pv-label { font-size: 0.65rem; color: #9ca3af; margin-bottom: 0.25rem; }
+        .pv-value { font-size: 1rem; font-weight: 700; color: #1f2937; transition: color .2s; }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: #CC0000; color: #fff;
+            font-size: 0.875rem; font-weight: 600;
+            padding: 0.625rem 1.375rem; border-radius: 0.75rem;
+            border: none; cursor: pointer; transition: background .15s, transform .1s;
+        }
+        .btn-primary:hover  { background: #a80000; }
+        .btn-primary:active { transform: scale(.98); }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            background: #fff; color: #6b7280;
+            font-size: 0.875rem; font-weight: 500;
+            padding: 0.625rem 1rem; border-radius: 0.75rem;
+            border: 1.5px solid #e5e7eb; cursor: pointer;
+            text-decoration: none; transition: background .15s;
+        }
+        .btn-secondary:hover { background: #f9fafb; }
+
+        /* ── Section ── */
+        .section { animation: fadeUp .22s ease both; }
+        .section.is-hidden { display: none !important; }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive grid ── */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        @media (max-width: 560px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-sm">
+<body>
 
-    {{-- Navbar --}}
-    <div class="navbar bg-[#CC0000] text-white shadow-lg px-4">
-        <div class="flex-1 flex items-center gap-3">
-            <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center font-black text-xs text-[#CC0000]">TA</div>
+{{-- ══════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════ --}}
+<nav style="background:#CC0000;position:sticky;top:0;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.18);">
+    <div style="max-width:44rem;margin:0 auto;padding:0 1.25rem;height:3.5rem;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div style="width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                {{-- <img src="{{ asset('images/logo.png') }}" style="width:100%;object-fit:contain"> --}}
+                <span style="color:#CC0000;font-weight:900;font-size:.65rem;">TA</span>
+            </div>
             <div>
-                <p class="font-bold text-sm leading-tight">Telkom Akses Binjai</p>
-                <p class="text-xs opacity-75 leading-tight">Tambah Data Perjalanan & BBM</p>
+                <p style="color:#fff;font-weight:700;font-size:.875rem;margin:0;">Telkom Akses Binjai</p>
+                <p style="color:rgba(255,255,255,.65);font-size:.7rem;margin:0;">Tambah Data Perjalanan &amp; BBM</p>
             </div>
         </div>
-        <div class="flex-none">
-            <a href="{{ route('perjalanan.index') }}" class="btn btn-sm btn-ghost text-white border border-white border-opacity-40">
-                ← Kembali
-            </a>
+        <a href="{{ route('perjalanan.index') }}"
+           style="color:rgba(255,255,255,.85);font-size:.75rem;border:1px solid rgba(255,255,255,.3);border-radius:.5rem;padding:.35rem .875rem;text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='rgba(255,255,255,.12)'"
+           onmouseout="this.style.background='transparent'">← Kembali</a>
+    </div>
+</nav>
+
+<main style="max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem 3rem;">
+
+    {{-- ── Global validation errors ── --}}
+    @if($errors->any())
+    <div class="alert alert-red" style="margin-bottom:1.25rem;">
+        <p style="font-weight:700;margin:0 0 .375rem;">⚠ {{ $errors->count() }} kesalahan perlu diperbaiki:</p>
+        <ul style="margin:0;padding-left:1.25rem;">
+            @foreach($errors->all() as $e)
+                <li>{{ $e }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    {{-- ── Progress bar ── --}}
+    <div class="progress-track" style="margin-bottom:0.875rem;">
+        <div class="progress-fill" id="progressFill" style="width:33.33%"></div>
+    </div>
+
+    {{-- ── Step wizard ── --}}
+    <div class="wizard" style="margin-bottom:1.25rem;">
+        <div class="wizard-step is-active" id="wizStep1" onclick="goStep(1)">
+            <div class="wizard-num" id="wizNum1">1</div>
+            <span>Perjalanan</span>
+        </div>
+        <div class="wizard-step" id="wizStep2" onclick="goStep(2)">
+            <div class="wizard-num" id="wizNum2">2</div>
+            <span>Odometer</span>
+        </div>
+        <div class="wizard-step" id="wizStep3" onclick="goStep(3)">
+            <div class="wizard-num" id="wizNum3">3</div>
+            <span>Bon BBM</span>
         </div>
     </div>
 
-    <div class="max-w-3xl mx-auto p-4">
+    {{-- ══════════════════════════════════════════════
+         FORM
+    ══════════════════════════════════════════════ --}}
+    <form action="{{ route('perjalanan.store') }}" method="POST" enctype="multipart/form-data" id="mainForm">
+    @csrf
 
-        {{-- Error summary --}}
-        @if($errors->any())
-        <div class="alert alert-error mb-4">
+    {{-- ════════════════════════════════════════════
+         STEP 1 — INFORMASI PERJALANAN
+    ════════════════════════════════════════════ --}}
+    <div class="section" id="sec1">
+
+        <div class="card" style="margin-bottom:1rem;">
+            <div class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Informasi Perjalanan
+            </div>
+
+            <div class="grid-2" style="margin-bottom:1rem;">
+                <div>
+                    <label class="label" for="tanggal">Tanggal<span class="label-required">*</span></label>
+                    <input
+                        id="tanggal" type="date" name="tanggal"
+                        value="{{ old('tanggal', date('Y-m-d')) }}"
+                        class="field {{ $errors->has('tanggal') ? 'field-error' : '' }}">
+                    @error('tanggal')<p class="error-msg">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="label" for="pegawai_id">Pegawai<span class="label-required">*</span></label>
+                    <select id="pegawai_id" name="pegawai_id" class="field {{ $errors->has('pegawai_id') ? 'field-error' : '' }}">
+                        <option value="">— Pilih pegawai —</option>
+                        @foreach($pegawais as $pg)
+                            <option value="{{ $pg->id }}" {{ old('pegawai_id') == $pg->id ? 'selected' : '' }}>
+                                {{ $pg->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('pegawai_id')<p class="error-msg">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom:1rem;">
+                <div>
+                    <label class="label" for="kendaraan_id">Kendaraan<span class="label-required">*</span></label>
+                    <select id="kendaraan_id" name="kendaraan_id" class="field {{ $errors->has('kendaraan_id') ? 'field-error' : '' }}">
+                        <option value="">— Pilih kendaraan —</option>
+                        @foreach($kendaraans as $k)
+                            <option value="{{ $k->id }}"
+                                data-km="{{ $kmTerakhir[$k->id] ?? '' }}"
+                                {{ old('kendaraan_id') == $k->id ? 'selected' : '' }}>
+                                {{ $k->plat_nomor }} — {{ $k->merk }} ({{ $k->jenis }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('kendaraan_id')<p class="error-msg">{{ $message }}</p>@enderror
+                    <span id="hintKendaraan" class="chip chip-blue" style="display:none;"></span>
+                </div>
+                <div>
+                    <label class="label" for="tujuan">Tujuan Perjalanan<span class="label-required">*</span></label>
+                    <input
+                        id="tujuan" type="text" name="tujuan"
+                        value="{{ old('tujuan') }}"
+                        placeholder="cth: Kantor Regional Medan"
+                        class="field {{ $errors->has('tujuan') ? 'field-error' : '' }}">
+                    @error('tujuan')<p class="error-msg">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
             <div>
-                <p class="font-bold">⚠ {{ $errors->count() }} kesalahan input:</p>
-                <ul class="list-disc list-inside text-sm mt-1 space-y-0.5">
-                    @foreach($errors->all() as $e)
-                        <li>{{ $e }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-        @endif
-
-        <form action="{{ route('perjalanan.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-
-        {{-- ── INFORMASI PERJALANAN ──────────────────────── --}}
-        <div class="card bg-white shadow-sm border border-gray-100 mb-4">
-            <div class="card-body p-5">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-[#CC0000] border-b border-gray-100 pb-2 mb-4">
-                    Informasi Perjalanan
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                Tanggal <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}"
-                            class="input input-bordered input-sm w-full {{ $errors->has('tanggal') ? 'input-error' : '' }}">
-                        @error('tanggal')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                Pegawai <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <select name="pegawai_id" class="select select-bordered select-sm w-full {{ $errors->has('pegawai_id') ? 'select-error' : '' }}">
-                            <option value="">— Pilih pegawai —</option>
-                            @foreach($pegawais as $pg)
-                                <option value="{{ $pg->id }}" {{ old('pegawai_id') == $pg->id ? 'selected' : '' }}>
-                                    {{ $pg->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('pegawai_id')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                Kendaraan <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <select id="kendaraan_id" name="kendaraan_id"
-                            class="select select-bordered select-sm w-full {{ $errors->has('kendaraan_id') ? 'select-error' : '' }}">
-                            <option value="">— Pilih kendaraan —</option>
-                            @foreach($kendaraans as $k)
-                                <option value="{{ $k->id }}"
-                                    data-km="{{ $kmTerakhir[$k->id] ?? '' }}"
-                                    {{ old('kendaraan_id') == $k->id ? 'selected' : '' }}>
-                                    {{ $k->nomor_polisi ?? $k->plat_nomor }} — {{ $k->merk ?? '' }} ({{ $k->tipe }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('kendaraan_id')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                        <p id="hint-km" class="text-xs text-blue-500 mt-1" style="display:none"></p>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                Tujuan Perjalanan <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <input type="text" name="tujuan" value="{{ old('tujuan') }}"
-                            placeholder="cth: Kantor Regional Medan"
-                            class="input input-bordered input-sm w-full {{ $errors->has('tujuan') ? 'input-error' : '' }}">
-                        @error('tujuan')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="form-control">
-                    <label class="label py-1">
-                        <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">Uraian Kegiatan</span>
-                        <span class="label-text-alt text-gray-400">opsional</span>
-                    </label>
-                    <textarea name="uraian" rows="2" placeholder="Keterangan tambahan..."
-                        class="textarea textarea-bordered textarea-sm w-full resize-none">{{ old('uraian') }}</textarea>
-                </div>
+                <label class="label" for="uraian">Uraian Kegiatan<span class="label-badge">(opsional)</span></label>
+                <textarea id="uraian" name="uraian" rows="2" placeholder="Keterangan tambahan..." class="field">{{ old('uraian') }}</textarea>
             </div>
         </div>
 
-        {{-- ── ODOMETER ──────────────────────────────────── --}}
-        <div class="card bg-white shadow-sm border border-gray-100 mb-4">
-            <div class="card-body p-5">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-[#CC0000] border-b border-gray-100 pb-2 mb-4">
-                    Data Odometer
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                KM Awal (Odometer Lama) <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <input type="number" id="km_lama" name="km_lama" value="{{ old('km_lama') }}"
-                            min="0" step="1" placeholder="cth: 12500"
-                            class="input input-bordered input-sm w-full {{ $errors->has('km_lama') ? 'input-error' : '' }}">
-                        @error('km_lama')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                        <label class="label py-0">
-                            <span class="label-text-alt text-gray-400">Baca dari odometer <strong>sebelum</strong> berangkat</span>
-                        </label>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                KM Akhir (Odometer Baru) <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <input type="number" id="km_baru" name="km_baru" value="{{ old('km_baru') }}"
-                            min="0" step="1" placeholder="cth: 12687"
-                            class="input input-bordered input-sm w-full {{ $errors->has('km_baru') ? 'input-error' : '' }}">
-                        @error('km_baru')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                        <label class="label py-0">
-                            <span class="label-text-alt text-gray-400">Baca dari odometer <strong>setelah</strong> tiba</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- ── BON BBM ───────────────────────────────────── --}}
-        <div class="card bg-white shadow-sm border border-gray-100 mb-4">
-            <div class="card-body p-5">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-[#CC0000] border-b border-gray-100 pb-2 mb-4">
-                    Data Bon BBM Pertamina
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                Nominal Bon (Rp) <span class="text-red-500">*</span>
-                            </span>
-                        </label>
-                        <input type="number" id="jumlah_biaya" name="jumlah_biaya"
-                            value="{{ old('jumlah_biaya') }}" min="1000" step="1000"
-                            placeholder="cth: 52000"
-                            class="input input-bordered input-sm w-full {{ $errors->has('jumlah_biaya') ? 'input-error' : '' }}">
-                        @error('jumlah_biaya')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                        <p id="nominal-check" class="text-xs mt-1.5 font-semibold"></p>
-                        <div class="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
-                            <p class="font-bold mb-0.5">⚠ Aturan Bon Lapangan</p>
-                            <p>Nominal harus <strong>kelipatan Rp1.000</strong> — bukan kelipatan bulat Rp10.000</p>
-                            <p class="text-green-600 mt-0.5">✓ Rp 51.000 · 52.000 · 127.000 · 101.000</p>
-                            <p class="text-red-500">✕ Rp 10.000 · 20.000 · 50.000 · 100.000</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="form-control">
-                            <label class="label py-1">
-                                <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                    Harga per Liter (Rp) <span class="text-red-500">*</span>
-                                </span>
-                            </label>
-                            {{-- step="1" agar browser tidak menolak nilai seperti 10000, 12900, 13500 --}}
-                            <input type="number" id="harga_per_liter" name="harga_per_liter"
-                                value="{{ old('harga_per_liter', 10000) }}" min="1" step="1"
-                                placeholder="cth: 10000"
-                                class="input input-bordered input-sm w-full {{ $errors->has('harga_per_liter') ? 'input-error' : '' }}">
-                            @error('harga_per_liter')
-                                <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                            @enderror
-                            <label class="label py-0">
-                                <span class="label-text-alt text-gray-400">Sesuai harga Pertamina saat pengisian</span>
-                            </label>
-                        </div>
-
-                        {{-- Volume BBM readonly — dihitung otomatis dari Nominal ÷ Harga --}}
-                        <div class="form-control">
-                            <label class="label py-1">
-                                <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                    Volume BBM (L)
-                                </span>
-                                <span class="label-text-alt text-blue-400 font-semibold">dihitung otomatis</span>
-                            </label>
-                            <div class="relative">
-                                <input type="number" id="vol_liter_preview" readonly
-                                    placeholder="—"
-                                    class="input input-bordered input-sm w-full bg-blue-50 text-blue-700 font-bold cursor-not-allowed pr-8">
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-400 font-semibold pointer-events-none">L</span>
-                            </div>
-                            <label class="label py-0">
-                                <span class="label-text-alt text-gray-400">= Nominal Bon ÷ Harga per Liter</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">No. Bon / Struk</span>
-                            <span class="label-text-alt text-gray-400">opsional</span>
-                        </label>
-                        <input type="text" name="no_bon" value="{{ old('no_bon') }}"
-                            placeholder="cth: TXN-20240601-001"
-                            class="input input-bordered input-sm w-full {{ $errors->has('no_bon') ? 'input-error' : '' }}">
-                        @error('no_bon')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                        <label class="label py-0">
-                            <span class="label-text-alt text-gray-400">Untuk cek duplikasi bon</span>
-                        </label>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-xs font-semibold text-gray-500 uppercase tracking-wide">Foto Bon / Struk</span>
-                            <span class="label-text-alt text-gray-400">opsional, maks 2MB</span>
-                        </label>
-                        <input type="file" name="foto_bon" accept="image/jpg,image/jpeg,image/png"
-                            class="file-input file-input-bordered file-input-sm w-full {{ $errors->has('foto_bon') ? 'file-input-error' : '' }}">
-                        @error('foto_bon')
-                            <label class="label py-0"><span class="label-text-alt text-error">{{ $message }}</span></label>
-                        @enderror
-                        <label class="label py-0">
-                            <span class="label-text-alt text-gray-400">Format JPG/PNG — untuk verifikasi audit</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- ── PREVIEW KALKULASI ─────────────────────────── --}}
-        <div id="preview-box" class="card bg-blue-50 border border-blue-200 mb-4" style="display:none">
-            <div class="card-body p-4">
-                <p class="text-xs font-bold text-blue-700 uppercase tracking-widest mb-3">🔢 Preview Kalkulasi Otomatis</p>
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white rounded-lg p-3 text-center shadow-sm">
-                        <p class="text-xs text-gray-400 mb-1">Jarak Tempuh</p>
-                        <p class="text-lg font-black text-gray-800" id="pv-jarak">—</p>
-                    </div>
-                    <div class="bg-white rounded-lg p-3 text-center shadow-sm">
-                        <p class="text-xs text-gray-400 mb-1">Volume BBM</p>
-                        <p class="text-lg font-black text-gray-800" id="pv-vol">—</p>
-                    </div>
-                    <div id="pv-eff-card" class="bg-white rounded-lg p-3 text-center shadow-sm">
-                        <p class="text-xs text-gray-400 mb-1">Efisiensi</p>
-                        <p class="text-lg font-black text-gray-800" id="pv-eff">—</p>
-                    </div>
-                </div>
-                <p id="pv-catatan" class="text-xs text-amber-600 mt-2"></p>
-            </div>
-        </div>
-
-        {{-- Submit --}}
-        <div class="flex items-center gap-3">
-            <button type="submit" class="btn btn-sm text-white border-none hover:opacity-90 font-bold px-6"
-                style="background:#CC0000">
-                💾 Simpan Data Perjalanan
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <a href="{{ route('perjalanan.index') }}" class="btn-secondary">← Batal</a>
+            <button type="button" class="btn-primary" onclick="goStep(2)">
+                Lanjut
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:.875rem;height:.875rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
-            <a href="{{ route('perjalanan.index') }}" class="btn btn-sm btn-ghost text-gray-400">
-                ← Batal
-            </a>
         </div>
-
-        </form>
     </div>
 
-    <footer class="text-center text-xs text-gray-300 py-6 mt-4">
-        PT Telkom Akses Binjai &mdash; Sistem Informasi Pengelolaan Biaya BBM Kendaraan Operasional
-    </footer>
+    {{-- ════════════════════════════════════════════
+         STEP 2 — ODOMETER
+    ════════════════════════════════════════════ --}}
+    <div class="section is-hidden" id="sec2">
 
-    <script>
-    const kmData = {
-        @foreach($kendaraans as $k)
-        {{ $k->id }}: {{ $kmTerakhir[$k->id] ?? 'null' }},
-        @endforeach
-    };
+        <div class="card" style="margin-bottom:1rem;">
+            <div class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+                Data Odometer
+            </div>
 
-    const selKendaraan   = document.getElementById('kendaraan_id');
-    const inpKmLama      = document.getElementById('km_lama');
-    const inpKmBaru      = document.getElementById('km_baru');
-    const inpBiaya       = document.getElementById('jumlah_biaya');
-    const inpHarga       = document.getElementById('harga_per_liter');
-    const volPreview     = document.getElementById('vol_liter_preview');
-    const hintKm         = document.getElementById('hint-km');
-    const nomCheck       = document.getElementById('nominal-check');
-    const previewBox     = document.getElementById('preview-box');
+            <div class="grid-2" style="margin-bottom:1rem;">
+                <div>
+                    <label class="label" for="km_lama">KM Awal<span class="label-required">*</span></label>
+                    <input
+                        id="km_lama" type="number" name="km_lama"
+                        value="{{ old('km_lama') }}"
+                        min="0" step="1" placeholder="cth: 12500"
+                        class="field {{ $errors->has('km_lama') ? 'field-error' : '' }}">
+                    @error('km_lama')<p class="error-msg">{{ $message }}</p>@enderror
+                    <p class="hint-msg">Baca odometer <strong>sebelum</strong> berangkat</p>
+                </div>
+                <div>
+                    <label class="label" for="km_baru">KM Akhir<span class="label-required">*</span></label>
+                    <input
+                        id="km_baru" type="number" name="km_baru"
+                        value="{{ old('km_baru') }}"
+                        min="0" step="1" placeholder="cth: 12687"
+                        class="field {{ $errors->has('km_baru') ? 'field-error' : '' }}">
+                    @error('km_baru')<p class="error-msg">{{ $message }}</p>@enderror
+                    <p class="hint-msg">Baca odometer <strong>setelah</strong> tiba</p>
+                </div>
+            </div>
 
-    // ── Kendaraan change ──────────────────────────────────────
-    selKendaraan.addEventListener('change', function () {
-        const km = kmData[this.value];
-        if (km) {
-            hintKm.textContent = `ℹ Odometer terakhir: ${km.toLocaleString('id-ID')} km — KM Awal harus ≥ angka ini.`;
-            hintKm.style.display = 'block';
-            if (!inpKmLama.value) inpKmLama.value = km;
+            {{-- Hint odometer terakhir (populated by JS) --}}
+            <div id="hintOdometerBox" class="alert alert-blue" style="display:none;font-size:.75rem;"></div>
+        </div>
+
+        {{-- Preview kalkulasi step 2 --}}
+        <div class="preview-wrap" id="previewStep2" style="margin-bottom:1rem;">
+            <p style="font-size:.68rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.08em;margin:0;">🔍 Preview Kalkulasi</p>
+            <div class="preview-grid">
+                <div class="pv-card">
+                    <div class="pv-label">Jarak Tempuh</div>
+                    <div class="pv-value" id="pv2-jarak">—</div>
+                </div>
+                <div class="pv-card">
+                    <div class="pv-label">Volume BBM</div>
+                    <div class="pv-value" id="pv2-vol">—</div>
+                </div>
+                <div class="pv-card" id="pv2-effCard">
+                    <div class="pv-label">Efisiensi</div>
+                    <div class="pv-value" id="pv2-eff">—</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" onclick="goStep(1)">← Kembali</button>
+            <button type="button" class="btn-primary" onclick="goStep(3)">
+                Lanjut
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:.875rem;height:.875rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- ════════════════════════════════════════════
+         STEP 3 — BON BBM
+    ════════════════════════════════════════════ --}}
+    <div class="section is-hidden" id="sec3">
+
+        <div class="card" style="margin-bottom:1rem;">
+            <div class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                Data Bon BBM Pertamina
+            </div>
+
+            <div class="grid-2" style="margin-bottom:1rem;">
+                {{-- Kolom kiri: nominal + validasi + aturan --}}
+                <div>
+                    <label class="label" for="jumlah_biaya">Nominal Bon (Rp)<span class="label-required">*</span></label>
+                    <input
+                        id="jumlah_biaya" type="number" name="jumlah_biaya"
+                        value="{{ old('jumlah_biaya') }}"
+                        min="1000" step="1000" placeholder="cth: 101000"
+                        class="field {{ $errors->has('jumlah_biaya') ? 'field-error' : '' }}">
+                    @error('jumlah_biaya')<p class="error-msg">{{ $message }}</p>@enderror
+                    <span id="nominalChip" class="chip" style="display:none;"></span>
+                    <div class="alert alert-amber" style="margin-top:.625rem;">
+                        <strong>⚠ Aturan Bon Lapangan</strong><br>
+                        Nominal harus <strong>kelipatan Rp1.000</strong> — bukan kelipatan bulat Rp10.000<br>
+                        <span style="color:#16a34a;">✓ Rp 51.000 · 52.000 · 101.000 · 127.000</span><br>
+                        <span style="color:#dc2626;">✗ Rp 10.000 · 50.000 · 100.000</span>
+                    </div>
+                </div>
+
+                {{-- Kolom kanan: harga + volume --}}
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div>
+                        <label class="label" for="harga_per_liter">Harga per Liter (Rp)<span class="label-required">*</span></label>
+                        <input
+                            id="harga_per_liter" type="number" name="harga_per_liter"
+                            value="{{ old('harga_per_liter', 10000) }}"
+                            min="1" step="1" placeholder="cth: 10000"
+                            class="field {{ $errors->has('harga_per_liter') ? 'field-error' : '' }}">
+                        @error('harga_per_liter')<p class="error-msg">{{ $message }}</p>@enderror
+                        <p class="hint-msg">Sesuai harga Pertamina saat pengisian</p>
+                    </div>
+                    <div>
+                        <label class="label" for="vol_liter_preview">
+                            Volume BBM (L)
+                            <span class="label-badge" style="color:#3b82f6;">dihitung otomatis</span>
+                        </label>
+                        <div style="position:relative;">
+                            <input
+                                id="vol_liter_preview" type="number"
+                                readonly placeholder="—"
+                                class="field field-readonly"
+                                style="padding-right:2rem;">
+                            <span style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);font-size:.72rem;color:#60a5fa;font-weight:700;pointer-events:none;">L</span>
+                        </div>
+                        <p class="hint-msg">= Nominal ÷ Harga per Liter</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="label" for="no_bon">No. Bon / Struk<span class="label-badge">(opsional)</span></label>
+                    <input
+                        id="no_bon" type="text" name="no_bon"
+                        value="{{ old('no_bon') }}"
+                        placeholder="cth: TXN-20240601-001"
+                        class="field {{ $errors->has('no_bon') ? 'field-error' : '' }}">
+                    @error('no_bon')<p class="error-msg">{{ $message }}</p>@enderror
+                    <p class="hint-msg">Untuk deteksi duplikasi bon</p>
+                </div>
+                <div>
+                    <label class="label" for="foto_bon">Foto Bon / Struk<span class="label-badge">(opsional, maks 2MB)</span></label>
+                    <input
+                        id="foto_bon" type="file" name="foto_bon"
+                        accept="image/jpg,image/jpeg,image/png"
+                        class="field" style="height:auto;padding:.5rem .75rem;cursor:pointer;">
+                    @error('foto_bon')<p class="error-msg">{{ $message }}</p>@enderror
+                    <p class="hint-msg">Format JPG/PNG — untuk verifikasi audit</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Preview kalkulasi step 3 --}}
+        <div class="preview-wrap" id="previewStep3" style="margin-bottom:1rem;">
+            <p style="font-size:.68rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.08em;margin:0;">🔍 Preview Kalkulasi</p>
+            <div class="preview-grid">
+                <div class="pv-card">
+                    <div class="pv-label">Jarak Tempuh</div>
+                    <div class="pv-value" id="pv3-jarak">—</div>
+                </div>
+                <div class="pv-card">
+                    <div class="pv-label">Volume BBM</div>
+                    <div class="pv-value" id="pv3-vol">—</div>
+                </div>
+                <div class="pv-card" id="pv3-effCard">
+                    <div class="pv-label">Efisiensi</div>
+                    <div class="pv-value" id="pv3-eff">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" onclick="goStep(2)">← Kembali</button>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    Simpan Data Perjalanan
+                </button>
+                <a href="{{ route('perjalanan.index') }}" class="btn-secondary">← Batal</a>
+            </div>
+        </div>
+    </div>
+
+    </form>
+</main>
+
+{{-- ══════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════ --}}
+<footer style="background:#111827;color:#9ca3af;margin-top:2rem;">
+    <div style="max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:1.25rem;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem;">
+                <div style="width:2.25rem;height:2.25rem;border-radius:50%;background:#CC0000;display:flex;align-items:center;justify-content:center;">
+                    <span style="color:#fff;font-weight:900;font-size:.75rem;">TA</span>
+                </div>
+                <p style="color:#f9fafb;font-weight:600;font-size:.8rem;margin:0;text-align:center;">PT Telkom Akses</p>
+                <p style="font-size:.7rem;margin:0;">Branch Binjai</p>
+            </div>
+            <div style="width:1px;background:#374151;align-self:stretch;"></div>
+            <div>
+                <p style="color:#f3f4f6;font-size:.875rem;font-weight:500;margin:0 0 .375rem;">Sistem Informasi Pengelolaan BBM</p>
+                <p style="font-size:.78rem;line-height:1.6;margin:0;color:#6b7280;">Monitoring biaya bahan bakar kendaraan operasional<br>dengan deteksi anomali dan fraud detection otomatis.</p>
+            </div>
+        </div>
+        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #1f2937;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;font-size:.7rem;">
+            <p style="margin:0;">&copy; {{ date('Y') }} PT Telkom Akses Binjai. All rights reserved.</p>
+            <p style="margin:0;color:#4b5563;">v1.0 &middot; TIF-2954/2026</p>
+        </div>
+    </div>
+</footer>
+
+{{-- ══════════════════════════════════════════════
+     JAVASCRIPT — pure vanilla, fungsi terpisah
+══════════════════════════════════════════════ --}}
+<script>
+/* ── Data km terakhir dari Laravel ── */
+const KM_DATA = {
+    @foreach($kendaraans as $k)
+    {{ $k->id }}: {{ $kmTerakhir[$k->id] ?? 'null' }},
+    @endforeach
+};
+
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let currentStep = 1;
+
+/* ══════════════════════════════════════════════
+   WIZARD — navigasi antar step
+══════════════════════════════════════════════ */
+function goStep(n) {
+    document.getElementById('sec' + currentStep).classList.add('is-hidden');
+    currentStep = n;
+    document.getElementById('sec' + n).classList.remove('is-hidden');
+
+    updateWizard(n);
+    updatePreview();
+}
+
+function updateWizard(active) {
+    const totalSteps = 3;
+    document.getElementById('progressFill').style.width = (active / totalSteps * 100) + '%';
+
+    for (let i = 1; i <= totalSteps; i++) {
+        const stepEl = document.getElementById('wizStep' + i);
+        const numEl  = document.getElementById('wizNum' + i);
+        stepEl.classList.remove('is-active', 'is-done');
+        if (i === active) {
+            stepEl.classList.add('is-active');
+            numEl.textContent = i;
+        } else if (i < active) {
+            stepEl.classList.add('is-done');
+            numEl.textContent = '✓';
         } else {
-            hintKm.style.display = 'none';
-        }
-        hitungPreview();
-    });
-
-    // ── Validasi nominal bon ──────────────────────────────────
-    // Tolak HANYA jika kelipatan bulat 10.000
-    // Valid  : 51.000, 52.000, 127.000, 101.000
-    // Tidak  : 10.000, 20.000, 50.000, 100.000
-    inpBiaya.addEventListener('input', function () {
-        const val = parseFloat(this.value);
-        nomCheck.textContent = '';
-        if (!val || val < 1000) { updateVolPreview(); return; }
-
-        if (val % 1000 !== 0) {
-            nomCheck.textContent = '✕ Harus kelipatan Rp1.000';
-            nomCheck.style.color = '#dc2626';
-        } else if (val % 10000 === 0) {
-            nomCheck.textContent = `✕ Rp ${val.toLocaleString('id-ID')} — nominal bulat, tidak valid!`;
-            nomCheck.style.color = '#dc2626';
-        } else {
-            nomCheck.textContent = `✓ Rp ${val.toLocaleString('id-ID')} — nominal valid ✓`;
-            nomCheck.style.color = '#16a34a';
-        }
-        updateVolPreview();
-        hitungPreview();
-    });
-
-    // ── Update field volume readonly ──────────────────────────
-    function updateVolPreview() {
-        const biaya = parseFloat(inpBiaya.value);
-        const harga = parseFloat(inpHarga.value);
-        if (biaya > 0 && harga > 0) {
-            volPreview.value = (biaya / harga).toFixed(2);
-        } else {
-            volPreview.value = '';
+            numEl.textContent = i;
         }
     }
+}
 
-    // ── Preview kalkulasi (jarak, vol, efisiensi) ─────────────
-    function hitungPreview() {
-        const kmL   = parseFloat(inpKmLama.value);
-        const kmB   = parseFloat(inpKmBaru.value);
-        const biaya = parseFloat(inpBiaya.value);
-        const harga = parseFloat(inpHarga.value);
-        const jarak = kmB - kmL;
-        const vol   = harga > 0 ? biaya / harga : 0;
-        const eff   = vol > 0 ? jarak / vol : 0;
+/* ══════════════════════════════════════════════
+   HINT — odometer terakhir kendaraan terpilih
+══════════════════════════════════════════════ */
+function updateHint() {
+    const kendaraanId = document.getElementById('kendaraan_id').value;
+    const km          = KM_DATA[kendaraanId];
 
-        if (!(jarak > 0) && !(vol > 0)) { previewBox.style.display = 'none'; return; }
-        previewBox.style.display = 'block';
-
-        document.getElementById('pv-jarak').textContent = jarak > 0 ? `${jarak.toLocaleString('id-ID')} km` : '—';
-        document.getElementById('pv-vol').textContent   = vol > 0   ? `${vol.toFixed(2).replace('.', ',')} L` : '—';
-
-        const pvEff  = document.getElementById('pv-eff');
-        const pvCard = document.getElementById('pv-eff-card');
-        if (eff > 0) {
-            pvEff.textContent = `${eff.toFixed(2).replace('.', ',')} km/L`;
-            pvCard.style.borderLeft = eff > 20 || eff < 2 ? '3px solid #ef4444'
-                                    : eff < 5             ? '3px solid #f59e0b'
-                                    : '3px solid #22c55e';
-        } else {
-            pvEff.textContent = '—';
-        }
-
-        const notes = [];
-        const kmTerakhir = kmData[selKendaraan.value];
-        if (kmTerakhir && !isNaN(kmL) && kmL < kmTerakhir)
-            notes.push(`⚠ KM Awal (${kmL.toLocaleString('id-ID')}) lebih kecil dari odometer terakhir (${kmTerakhir.toLocaleString('id-ID')} km) — akan ditolak!`);
-        if (jarak > 600)
-            notes.push(`⚠ Jarak ${jarak.toLocaleString('id-ID')} km tampak sangat jauh untuk 1 perjalanan.`);
-        document.getElementById('pv-catatan').innerHTML = notes.join('<br>');
+    /* Chip di step 1 */
+    const chip = document.getElementById('hintKendaraan');
+    if (km) {
+        chip.textContent = 'Odometer terakhir: ' + Number(km).toLocaleString('id-ID') + ' km';
+        chip.style.display = 'inline-flex';
+    } else {
+        chip.style.display = 'none';
     }
 
-    // ── Event listeners ───────────────────────────────────────
-    inpKmLama.addEventListener('input', hitungPreview);
-    inpKmBaru.addEventListener('input', hitungPreview);
-    inpHarga.addEventListener('input', function () {
-        updateVolPreview();
-        hitungPreview();
-    });
+    /* Alert di step 2 */
+    const box    = document.getElementById('hintOdometerBox');
+    const kmLama = document.getElementById('km_lama');
+    if (km) {
+        box.innerHTML = 'ℹ Odometer terakhir kendaraan ini: <strong>' + Number(km).toLocaleString('id-ID') + ' km</strong>.';
+        box.style.display = 'block';
+        if (!kmLama.value) {
+            kmLama.value = km;
+        }
+    } else {
+        box.style.display = 'none';
+    }
+}
 
-    // ── Init saat halaman load ────────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-        if (selKendaraan.value) selKendaraan.dispatchEvent(new Event('change'));
-        if (inpBiaya.value)    inpBiaya.dispatchEvent(new Event('input'));
-        updateVolPreview();
-        hitungPreview();
-    });
-    </script>
+/* ══════════════════════════════════════════════
+   VALIDASI NOMINAL — real-time chip feedback
+══════════════════════════════════════════════ */
+function updateNominalChip() {
+    const v   = parseInt(document.getElementById('jumlah_biaya').value, 10);
+    const chip = document.getElementById('nominalChip');
 
+    chip.style.display = 'none';
+    chip.className = 'chip';
+
+    if (!v || v < 1000) return;
+
+    chip.style.display = 'inline-flex';
+
+    if (v % 1000 !== 0) {
+        chip.classList.add('chip-red');
+        chip.textContent = '✕ Harus kelipatan Rp1.000';
+    } else if (v % 10000 === 0) {
+        chip.classList.add('chip-red');
+        chip.textContent = '✕ Rp ' + v.toLocaleString('id-ID') + ' — nominal bulat, tidak valid!';
+    } else {
+        chip.classList.add('chip-green');
+        chip.textContent = '✓ Rp ' + v.toLocaleString('id-ID') + ' — valid';
+    }
+}
+
+/* ══════════════════════════════════════════════
+   VOLUME — nominal ÷ harga (untuk field readonly)
+══════════════════════════════════════════════ */
+function updateVolume() {
+    const nominal = parseFloat(document.getElementById('jumlah_biaya').value);
+    const harga   = parseFloat(document.getElementById('harga_per_liter').value);
+    const field   = document.getElementById('vol_liter_preview');
+    field.value   = (nominal > 0 && harga > 0) ? (nominal / harga).toFixed(2) : '';
+}
+
+/* ══════════════════════════════════════════════
+   PREVIEW — tampilkan kalkulasi di UI
+   Catatan: backend (Model Perjalanan) adalah
+   source of truth. JS hanya untuk preview UI.
+══════════════════════════════════════════════ */
+function updatePreview() {
+    const kmLama  = parseFloat(document.getElementById('km_lama').value);
+    const kmBaru  = parseFloat(document.getElementById('km_baru').value);
+    const nominal = parseFloat(document.getElementById('jumlah_biaya').value);
+    const harga   = parseFloat(document.getElementById('harga_per_liter').value);
+
+    const jarak  = (!isNaN(kmLama) && !isNaN(kmBaru)) ? (kmBaru - kmLama) : 0;
+    const volume = (harga > 0 && nominal > 0) ? (nominal / harga) : 0;
+    const efisiensi = (volume > 0 && jarak > 0) ? (jarak / volume) : 0;
+
+    const shouldShow = (jarak > 0 || volume > 0);
+
+    renderPreviewBlock('previewStep2', 'pv2', jarak, volume, efisiensi, shouldShow);
+    renderPreviewBlock('previewStep3', 'pv3', jarak, volume, efisiensi, shouldShow);
+}
+
+function renderPreviewBlock(wrapperId, prefix, jarak, volume, efisiensi, show) {
+    const wrap = document.getElementById(wrapperId);
+    if (!wrap) return;
+
+    if (!show) {
+        wrap.classList.remove('is-visible');
+        return;
+    }
+    wrap.classList.add('is-visible');
+
+    const jarakEl    = document.getElementById(prefix + '-jarak');
+    const volEl      = document.getElementById(prefix + '-vol');
+    const effEl      = document.getElementById(prefix + '-eff');
+    const effCardEl  = document.getElementById(prefix + '-effCard');
+    if (!jarakEl) return;
+
+    jarakEl.textContent = jarak > 0 ? jarak.toLocaleString('id-ID') + ' km' : '—';
+    volEl.textContent   = volume > 0 ? volume.toFixed(2) + ' L' : '—';
+
+    if (efisiensi > 0) {
+        effEl.textContent = efisiensi.toFixed(2) + ' km/L';
+        if (efisiensi > 20 || efisiensi < 2) {
+            effCardEl.style.borderColor = '#ef4444';
+            effEl.style.color = '#ef4444';
+        } else if (efisiensi < 5) {
+            effCardEl.style.borderColor = '#f59e0b';
+            effEl.style.color = '#d97706';
+        } else {
+            effCardEl.style.borderColor = '#22c55e';
+            effEl.style.color = '#16a34a';
+        }
+    } else {
+        effEl.textContent = '—';
+        effCardEl.style.borderColor = '#dbeafe';
+        effEl.style.color = '#1f2937';
+    }
+}
+
+/* ══════════════════════════════════════════════
+   EVENT LISTENERS
+══════════════════════════════════════════════ */
+document.getElementById('kendaraan_id').addEventListener('change', function () {
+    updateHint();
+    updatePreview();
+});
+
+document.getElementById('km_lama').addEventListener('input', updatePreview);
+document.getElementById('km_baru').addEventListener('input', updatePreview);
+
+document.getElementById('jumlah_biaya').addEventListener('input', function () {
+    updateNominalChip();
+    updateVolume();
+    updatePreview();
+});
+
+document.getElementById('harga_per_liter').addEventListener('input', function () {
+    updateVolume();
+    updatePreview();
+});
+
+/* ══════════════════════════════════════════════
+   INIT — restore old() Laravel setelah validasi gagal
+══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', function () {
+    @if(old('jumlah_biaya'))
+        goStep(3);
+    @elseif(old('km_lama') || old('km_baru'))
+        goStep(2);
+    @else
+        updateWizard(1);
+    @endif
+
+    const sel = document.getElementById('kendaraan_id');
+    if (sel.value) {
+        updateHint();
+    }
+
+    updateVolume();
+    updateNominalChip();
+    updatePreview();
+});
+</script>
 </body>
 </html>
