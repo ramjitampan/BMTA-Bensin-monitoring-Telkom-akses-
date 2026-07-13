@@ -24,10 +24,9 @@
 
 <br/>
 
-![Status](https://img.shields.io/badge/Status-Development-yellow?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Release%20v2.1-success?style=for-the-badge)
 ![Verification](https://img.shields.io/badge/Internal-Verification-orange?style=for-the-badge)
-![REST API](https://img.shields.io/badge/REST%20API-v1-2E8B57?style=for-the-badge)
-![AI](https://img.shields.io/badge/AI-Ollama%20%2B%20Gemma-6E56CF?style=for-the-badge)
+![REST API](https://img.shields.io/badge/REST%20API-v2-2E8B57?style=for-the-badge)
 ![Excel Export](https://img.shields.io/badge/Excel-Export-1D6F42?style=for-the-badge&logo=microsoftexcel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
@@ -54,9 +53,10 @@ Seiring perkembangan proyek, aplikasi kini telah mendukung cakupan yang lebih lu
 
 - 📊 **Operational Monitoring** — pencatatan dan pemantauan penggunaan BBM kendaraan operasional
 - 📈 **Reporting** — rekapitulasi dan export laporan bulanan
-- 🔌 **REST API** — integrasi data untuk kebutuhan sistem lain / mobile app di masa depan
-- 🤖 **AI Analysis** — analisis efisiensi dan rekomendasi otomatis berbasis AI lokal
+- 🔌 **REST API** — integrasi data untuk aplikasi mobile Flutter
 - 📄 **Excel Reporting** — export laporan bulanan mengikuti format pelaporan PT. Telkom Akses
+- 🔍 **Deteksi Anomali Otomatis** — validasi jarak tempuh vs nilai sewajarnya dengan toleransi 40%
+- ⏱️ **Validasi Timeline Odometer** — deteksi odometer mundur berdasarkan urutan kronologis
 
 > 🚧 **Catatan:** Saat ini sistem sedang berada dalam tahap **verifikasi internal** oleh pihak **HR** dan **Head of Regional Office (Head RO)** PT. Telkom Akses Binjai, sebelum masuk ke tahap deployment produksi.
 
@@ -86,7 +86,8 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
 - ✅ Menghitung efisiensi kendaraan berdasarkan jarak tempuh
 - ✅ Menampilkan dashboard monitoring penggunaan BBM
 - ✅ Membantu HR dan Supervisor melakukan evaluasi penggunaan kendaraan
-- ✅ Menyediakan pondasi sistem yang dapat dikembangkan menjadi aplikasi mobile di masa mendatang
+- ✅ Menyediakan REST API untuk aplikasi mobile Flutter
+- ✅ Deteksi anomali otomatis berdasarkan deviasi dari nilai sewajarnya
 
 ---
 
@@ -99,7 +100,7 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <th>📄 Dokumentasi</th>
     <th>📈 Laporan</th>
     <th>🔌 API</th>
-    <th>🤖 AI Analyst</th>
+    <th>🔍 Validasi</th>
   </tr>
   <tr>
     <td>Data Pegawai</td>
@@ -107,7 +108,7 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <td>Upload Foto Bon</td>
     <td>Rekap Penggunaan BBM</td>
     <td>API Data Perjalanan</td>
-    <td>Analisis Efisiensi Otomatis</td>
+    <td>Status Efisiensi (Balance/Boros/Anomali)</td>
   </tr>
   <tr>
     <td>Data Kendaraan</td>
@@ -115,7 +116,7 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <td>Nomor Bon</td>
     <td>Rekap Efisiensi Pegawai</td>
     <td>API Rekap Monitoring</td>
-    <td>Rekomendasi Otomatis</td>
+    <td>Status Validasi (Normal/Perlu Verifikasi/Anomali)</td>
   </tr>
   <tr>
     <td>Data Perjalanan</td>
@@ -123,27 +124,30 @@ Oleh karena itu dibangun sistem informasi yang mampu membantu proses pencatatan 
     <td>Riwayat Perjalanan</td>
     <td>Dashboard Monitoring (Operational Dashboard)</td>
     <td>API Detail Perjalanan</td>
-    <td>Berjalan Lokal (Ollama + Gemma)</td>
+    <td>Validasi Timeline Odometer</td>
   </tr>
   <tr>
     <td>Data Pembelian BBM</td>
     <td>Status Balance / Boros / Anomali</td>
     <td></td>
     <td>Export Excel Bulanan (Format PT. Telkom Akses)</td>
-    <td>REST API v1</td>
-    <td></td>
+    <td>Filter & Pagination</td>
+    <td>Deteksi Anomali (deviasi vs toleransi 40%)</td>
   </tr>
 </table>
 
 ### Status Monitoring Kendaraan
 
-| Status | Indikator | Keterangan |
-|--------|-----------|------------|
-| 🟢 **Balance** | Efisiensi normal | Penggunaan BBM sesuai standar |
-| 🟡 **Boros** | Konsumsi tinggi | Penggunaan BBM di atas rata-rata |
-| 🔴 **Anomali** | Perlu investigasi | Terdapat ketidakwajaran pada data |
+| Status | Tipe | Indikator | Keterangan |
+|--------|------|-----------|------------|
+| 🟢 **Balance** | Efisiensi | Efisiensi normal | Penggunaan BBM sesuai standar |
+| 🟡 **Boros** | Efisiensi | Konsumsi tinggi | Penggunaan BBM di atas rata-rata |
+| 🔴 **Anomali** | Efisiensi | Perlu investigasi | Efisiensi di luar batas wajar |
+| 🟢 **Normal** | Validasi | Data wajar | Tidak ada deviasi signifikan |
+| 🟡 **Perlu Verifikasi** | Validasi | Deviasi moderat | Selisih 1-2× batas toleransi |
+| 🔴 **Anomali** | Validasi | Deviasi tinggi | Selisih >2× batas toleransi |
 
-> ⚠️ Status ini digunakan sebagai **indikator monitoring** dan bukan sebagai alat pembuktian kecurangan.
+> ⚠️ Status Efisiensi mengukur konsumsi BBM (km/L). Status Validasi mengukur kewajaran jarak tempuh terhadap nilai sewajarnya. Keduanya bersifat indikator monitoring, bukan alat pembuktian kecurangan.
 
 ---
 
@@ -164,18 +168,51 @@ Volume BBM = Nominal Bon / Harga Per Liter
 Efisiensi = Jarak Tempuh / Volume BBM
 ```
 
+### Nilai Sewajarnya (Expected Distance)
+```
+Efisiensi Wajar = (Balance Threshold + Anomali Atas Threshold) / 2
+Nilai Sewajarnya = Volume BBM × Efisiensi Wajar
+```
+
+Nilai sewajarnya menggunakan **midpoint** antara batas balance dan anomali atas, bukan batas minimum:
+
+| Tipe BBM | Balance (min) | Anomali Atas (max) | Midpoint (yang dipakai) |
+|----------|:-:|:-:|:-:|
+| R4 Pertalite | 10 km/L | 20 km/L | 15 km/L |
+| R4 Solar/Dex | 6 km/L | 14 km/L | 10 km/L |
+| R2 | 25 km/L | 60 km/L | 42.5 km/L |
+
+### Deviasi & Toleransi
+```
+Deviasi = |Nilai Sewajarnya - Jarak Aktual|
+Toleransi = 40% × Nilai Sewajarnya
+Rasio Deviasi = Deviasi / Toleransi
+```
+
+### Status Validasi
+| Rasio Deviasi | Status |
+|:-------------:|--------|
+| ≤ 1.0 | 🟢 Normal |
+| 1.0 – 2.0 | 🟡 Perlu Verifikasi |
+| > 2.0 | 🔴 Anomali |
+
 ### Contoh Perhitungan
 
 ```
-KM Awal     : 12.450 km
-KM Akhir    : 12.680 km
-Nominal Bon : Rp 150.000
-Harga/Liter : Rp 10.000
+KM Awal       : 12.450 km
+KM Akhir      : 12.680 km
+Nominal Bon   : Rp 150.000
+Harga/Liter   : Rp 10.000
+Tipe BBM      : Pertalite (R4)
 
-─────────────────────────────
-Jarak Tempuh : 12.680 - 12.450 = 230 km
-Volume BBM   : 150.000 / 10.000 = 15 liter
-Efisiensi    : 230 / 15 = 15,3 km/liter → 🟢 Balance
+─────────────────────────────────────
+Jarak Tempuh    : 12.680 - 12.450 = 230 km
+Volume BBM      : 150.000 / 10.000 = 15 liter
+Efisiensi       : 230 / 15 = 15,3 km/liter → 🟢 Balance
+Nilai Sewajarnya : 15 × 15 = 225 km
+Deviasi         : |225 - 230| = 5 km
+Toleransi       : 40% × 225 = 90 km
+Rasio Deviasi   : 5 / 90 = 0.06 → 🟢 Normal
 ```
 
 ---
@@ -184,25 +221,34 @@ Efisiensi    : 230 / 15 = 15,3 km/liter → 🟢 Balance
 
 ```mermaid
 flowchart TD
-    A[🧑‍💼 Admin BBM Input Data] --> B[✅ Validasi Data]
+    A[🧑‍💼 Admin Input Data] --> B[✅ Validasi Input]
     B --> C[📏 Hitung Jarak Tempuh]
     B --> D[🧪 Hitung Volume BBM]
     C --> E[⚙️ Hitung Efisiensi]
     D --> E
 
-    E --> N[🤖 AI Analyst]
-    N --> F[🔍 Analisis Monitoring]
+    E --> F[📊 Status Efisiensi]
+    E --> G[🔍 Deteksi Anomali]
+    C --> H[⏱️ Validasi Timeline]
 
-    F --> G[🟢 Balance]
-    F --> H[🟡 Boros]
-    F --> I[🔴 Anomali]
+    G --> I[🧮 Hitung Nilai Sewajarnya]
+    I --> J[📐 Hitung Deviasi vs Toleransi]
+    J --> K[🟢 Normal]
+    J --> L[🟡 Perlu Verifikasi]
+    J --> M[🔴 Anomali]
 
-    G --> J[📊 Dashboard]
-    H --> J
-    I --> J
+    H --> N[✅ Logis]
+    H --> O[⚠️ Perlu Verifikasi]
 
-    J --> K[👤 HR]
-    K --> L[📋 Head RO]
+    F --> P[📊 Dashboard]
+    K --> P
+    L --> P
+    M --> P
+    N --> P
+    O --> P
+
+    P --> Q[👤 HR]
+    Q --> R[📋 Head RO]
 ```
 
 ---
@@ -212,11 +258,12 @@ flowchart TD
 ```mermaid
 flowchart LR
     A[🖥️ Website Admin] --> B[⚙️ Laravel API]
-    C[📱 Dashboard Mobile] --> B
+    C[📱 Flutter Mobile App] --> B
     B --> D[(🗄️ Database)]
     D --> B
     B --> E[📊 Monitoring]
     B --> F[📈 Laporan]
+    B --> G[🔍 Deteksi Anomali]
 ```
 
 ---
@@ -226,13 +273,11 @@ flowchart LR
 ```mermaid
 flowchart LR
     A[Browser] --> B[Laravel 13]
-    I[Future Mobile App] --> C[REST API v1]
-    B --> D[(MySQL)]
-    B --> C
-    B --> E[Ollama]
-    E --> F[Google Gemma]
-    F --> G[Dashboard]
-    B --> H[Excel Export]
+    C[Flutter Mobile App] --> D[REST API v2]
+    B --> E[(MySQL)]
+    B --> D
+    B --> F[Excel Export]
+    D --> E
 ```
 
 ---
@@ -254,27 +299,18 @@ flowchart LR
 | Teknologi | Peran |
 |-----------|-------|
 | Blade Template | Template engine Laravel |
-| Bootstrap | Komponen UI |
-| AdminLTE | Dashboard admin |
-| AOS (Animate On Scroll) | Animasi transisi antar elemen UI |
-
-### AI & Analisis Otomatis
-| Teknologi | Peran |
-|-----------|-------|
-| Ollama | Runtime untuk menjalankan Large Language Model secara lokal |
-| Google Gemma | Model AI yang digunakan untuk analisis efisiensi & rekomendasi |
+| Custom CSS | Styling modern (Card UI, animasi, responsive) |
 
 ### Library Tambahan
 | Library | Peran |
 |---------|-------|
-| Laravel DOMPDF | Export laporan PDF |
 | Laravel Excel | Export laporan Excel bulanan |
 | Laravel Tinker | Debugging & REPL |
 
 ### API
 | Jenis | Format |
 |-------|--------|
-| REST API Laravel (v1) | JSON Response |
+| REST API Laravel (v2) | JSON Response |
 
 ---
 
@@ -287,7 +323,7 @@ flowchart LR
 │  🔧 Admin BBM      👤 HR           🔍 Supervisor        │
 │  ─────────────    ─────────────   ─────────────────     │
 │  Input Data BBM   Monitoring BBM  Monitor Kendaraan     │
-│  Upload Bon       Rekapitulasi    Monitor Efisiensi      │
+│  Upload Bon       Rekapitulasi    Monitor Efisiensi     │
 │  Kelola Trip      Data                                  │
 │                                                         │
 │                   📋 Head RO                            │
@@ -299,35 +335,89 @@ flowchart LR
 
 ---
 
-## 🤖 AI Integration
+## 🔌 REST API v2
 
-Sistem ini telah terintegrasi dengan **Large Language Model (LLM) yang berjalan secara lokal**, menggunakan **Ollama** sebagai runtime dan **Google Gemma** sebagai model AI.
+REST API v2 (unversioned) tersedia untuk mendukung aplikasi mobile Flutter dan integrasi sistem lain.
 
-Fitur AI Analyst membantu:
+| Method | Endpoint | Keterangan | Parameter |
+|--------|----------|------------|-----------|
+| GET | `/api/perjalanan` | Daftar perjalanan (paginated) | `per_page`, `pegawai_id`, `kendaraan_id`, `status`, `status_validasi`, `tanggal_dari`, `tanggal_sampai` |
+| POST | `/api/perjalanan` | Tambah perjalanan baru | JSON body |
+| GET | `/api/perjalanan/{id}` | Detail perjalanan | — |
+| GET | `/api/perjalanan/rekap` | Rekap monitoring | `tanggal_dari`, `tanggal_sampai` |
 
-- 📊 Menganalisis pola konsumsi BBM kendaraan operasional
-- ⚙️ Mengevaluasi efisiensi operasional berdasarkan data perjalanan
-- 💡 Memberikan rekomendasi otomatis (misal: kendaraan yang perlu pengecekan, potensi pemborosan, dsb.)
+### Response Format (GET /api/perjalanan)
 
-**Poin penting:**
+```json
+{
+  "message": "Data perjalanan berhasil diambil.",
+  "data": [
+    {
+      "id": 1,
+      "tanggal": "2026-06-03",
+      "pegawai": { "id": 1, "nama": "ramzy" },
+      "kendaraan": { "id": 3, "plat_nomor": "B 9868 TAZ", "jenis": "R4" },
+      "tujuan": "Lokasi Stabat",
+      "uraian": "BIAYA BENSIN OPERASIONAL",
+      "odometer": {
+        "km_lama": 65320,
+        "km_baru": 65431,
+        "jarak_km": 111
+      },
+      "bbm": {
+        "vol_liter": 10.1,
+        "harga_per_liter": 10000,
+        "jumlah_biaya": 101000,
+        "no_bon": null,
+        "foto_bon": null,
+        "foto_bon_url": null
+      },
+      "monitoring": {
+        "efisiensi": 10.99,
+        "status_efisiensi": "balance",
+        "status_reason": "...",
+        "fraud_score": 10,
+        "fraud_flags": { ... }
+      },
+      "status_validasi": "Normal",
+      "nilai_sewajarnya": 151.5,
+      "deviasi_km": 40.5,
+      "keterangan_validasi": "...",
+      "timeline_status": "Logis",
+      "alasan_timeline": null,
+      "display_flags": [],
+      "created_at": "2026-06-23 10:38:50",
+      "updated_at": "2026-07-13 02:14:41"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 10,
+    "per_page": 15,
+    "total": 150
+  }
+}
+```
 
-- ✅ AI berjalan **sepenuhnya secara lokal** di server/komputer yang menjalankan Ollama
-- ✅ **Tidak membutuhkan API AI berbayar** dari penyedia cloud manapun
-- ✅ Data kendaraan dan perjalanan tidak perlu dikirim ke pihak ketiga untuk dianalisis
+### Root-level Alias untuk Flutter
 
----
+| Field | Sumber | Tipe |
+|-------|--------|------|
+| `status_validasi` | `fraud_flags.status_anomali` | string (Normal / Perlu Verifikasi / Anomali) |
+| `nilai_sewajarnya` | `fraud_flags.hasil_sewajarnya` | float |
+| `deviasi_km` | `fraud_flags.deviasi` | float |
+| `keterangan_validasi` | `fraud_flags.keterangan_anomali` | string |
+| `timeline_status` | `fraud_flags.timeline_status` | string |
+| `alasan_timeline` | `fraud_flags.alasan_timeline` | string? |
+| `display_flags` | `fraud_flags.display_flags` | string[] |
 
-## 🔌 REST API v1
+### Filter `status_validasi`
 
-REST API Version 1 kini tersedia untuk mendukung integrasi dengan sistem lain maupun pengembangan aplikasi mobile di masa depan.
-
-| Method | Endpoint | Keterangan |
-|--------|----------|------------|
-| GET | `/api/v1/dashboard` | Ringkasan data monitoring BBM |
-| GET | `/api/v1/pegawai` | Daftar data pegawai |
-| GET | `/api/v1/kendaraan` | Daftar data kendaraan |
-| GET | `/api/v1/perjalanan` | Daftar data perjalanan |
-| GET | `/api/v1/ai-analysis` | Hasil analisis & rekomendasi dari AI Analyst |
+```
+GET /api/perjalanan?status_validasi=Normal
+GET /api/perjalanan?status_validasi=Perlu+Verifikasi
+GET /api/perjalanan?status_validasi=Anomali
+```
 
 > Seluruh endpoint mengembalikan response dalam format **JSON**.
 
@@ -341,11 +431,21 @@ REST API Version 1 kini tersedia untuk mendukung integrasi dengan sistem lain ma
 - [x] CRUD Kendaraan
 - [x] CRUD Perjalanan
 - [x] Upload Bon BBM
-- [x] Monitoring Efisiensi
+- [x] Monitoring Efisiensi (Balance / Boros / Anomali)
 - [x] Dashboard Monitoring
-- [x] REST API v1
 - [x] Export Excel Bulanan
-- [x] AI Analyst (Ollama + Google Gemma)
+
+### ✅ Tahap 2 — REST API & Validasi (Selesai - v2.1)
+
+- [x] REST API unversioned (v2)
+- [x] Pagination & filter API (pegawai, kendaraan, tanggal, status)
+- [x] Filter `status_validasi` (Normal / Perlu Verifikasi / Anomali)
+- [x] Deteksi Anomali (deviasi vs nilai sewajarnya, toleransi 40%)
+- [x] Validasi Timeline Odometer (kronologis berdasarkan tanggal)
+- [x] Root-level response alias untuk Flutter
+- [x] Fix model Kendaraan (mapping jenis/tipe)
+- [x] Hapus V1 API & dead code
+- [x] Redesain mobile UI
 
 ### 🔎 Tahap Saat Ini — Verifikasi Internal
 
@@ -353,14 +453,14 @@ REST API Version 1 kini tersedia untuk mendukung integrasi dengan sistem lain ma
 - [ ] Validasi oleh Head of Regional Office (Head RO)
 - [ ] Pengumpulan feedback sebelum deployment produksi
 
-### 🔄 Tahap 2 — Pelaporan Lanjutan (Dalam Rencana)
+### 🔄 Tahap 3 — Pelaporan Lanjutan (Dalam Rencana)
 
 - [ ] Export PDF
 - [ ] Filter Periode Laporan
 
-### 📱 Tahap 3 — Mobile & Integrasi (Direncanakan)
+### 📱 Tahap 4 — Mobile & Deployment (Direncanakan)
 
-- [ ] Aplikasi Mobile Flutter
+- [ ] Aplikasi Mobile Flutter (konsumsi REST API)
 - [ ] Dashboard Monitoring Mobile
 - [ ] Role Permission (multi-level akses pengguna)
 - [ ] Integrasi Server Perusahaan (Company Deployment)
