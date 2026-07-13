@@ -13,10 +13,10 @@
         <th>NO</th>
         <th>TANGGAL</th>
         <th>URAIAN</th>
+        <th>TUJUAN</th>
         <th>KENDARAAN</th>
-        <th>NO POL</th>
-        <th>VOL/LTR</th>
-        <th>SPEED METER</th>
+        <th>NO POLISI</th>
+        <th>VOLUME (L)</th>
         <th>KM LAMA</th>
         <th>KM BARU</th>
         <th>SELISIH</th>
@@ -25,38 +25,38 @@
     </tr>
     @forelse($perjalanans as $perjalanan)
         <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $perjalanan->tanggal->format('d/m/Y') }}</td>
+            <td style="text-align:center">{{ $loop->iteration }}</td>
+            <td style="text-align:center">{{ $perjalanan->tanggal->format('d/m/Y') }}</td>
             <td>{{ $perjalanan->uraian ?: $perjalanan->tujuan }}</td>
-            <td>{{ $perjalanan->kendaraan->merk ?? $perjalanan->kendaraan->jenis ?? '-' }}</td>
-            <td>{{ $perjalanan->kendaraan->plat_nomor ?? '-' }}</td>
-            <td>{{ $perjalanan->vol_liter }}</td>
-            <td>{{ $perjalanan->km_baru }}</td>
-            <td>{{ $perjalanan->km_lama }}</td>
-            <td>{{ $perjalanan->km_baru }}</td>
-            <td>{{ $perjalanan->jarak }}</td>
-            <td>{{ $perjalanan->harga_per_liter }}</td>
-            <td>{{ $perjalanan->jumlah_biaya }}</td>
+            <td>{{ $perjalanan->tujuan }}</td>
+            <td style="text-align:center">{{ $perjalanan->kendaraan->merk ?? $perjalanan->kendaraan->jenis ?? '-' }}</td>
+            <td style="text-align:center">{{ $perjalanan->kendaraan->plat_nomor ?? '-' }}</td>
+            <td style="text-align:center">{{ number_format($perjalanan->vol_liter, 2, ',', '.') }}</td>
+            <td style="text-align:center">{{ number_format($perjalanan->km_lama, 0, ',', '.') }}</td>
+            <td style="text-align:center">{{ number_format($perjalanan->km_baru, 0, ',', '.') }}</td>
+            <td style="text-align:center">{{ number_format($perjalanan->jarak, 0, ',', '.') }}</td>
+            <td style="text-align:right">Rp {{ number_format($perjalanan->harga_per_liter, 0, ',', '.') }}</td>
+            <td style="text-align:right">Rp {{ number_format($perjalanan->jumlah_biaya, 0, ',', '.') }}</td>
         </tr>
     @empty
         <tr>
-            <td colspan="12">Tidak ada data perjalanan pada periode ini.</td>
+            <td colspan="12" style="text-align:center">Tidak ada data perjalanan pada periode ini.</td>
         </tr>
     @endforelse
     <tr>
-        <td colspan="11">TOTAL:</td>
-        <td></td>
+        <td colspan="11" style="text-align:right;font-weight:bold">TOTAL:</td>
+        <td style="text-align:right;font-weight:bold"></td>
     </tr>
     <tr><td colspan="12"></td></tr>
     <tr><td colspan="12"></td></tr>
     <tr>
-        <td colspan="6">Mgr. Branch Binjai</td>
-        <td colspan="6">Officer 3 Business Support Branch Binjai</td>
+        <td colspan="6" style="text-align:center">Mgr. Branch Binjai</td>
+        <td colspan="6" style="text-align:center">Officer 3 Business Support Branch Binjai</td>
     </tr>
     <tr><td colspan="12"></td></tr>
     <tr><td colspan="12"></td></tr>
     <tr>
-        <td colspan="6"><strong>{{ config('perjalanan_report.manager_name') }}</strong></td>
-        <td colspan="6"><strong>{{ config('perjalanan_report.officer_name') }}</strong></td>
+        <td colspan="6" style="text-align:center"><strong>{{ config('perjalanan_report.manager_name') }}</strong></td>
+        <td colspan="6" style="text-align:center"><strong>{{ config('perjalanan_report.officer_name') }}</strong></td>
     </tr>
 </table>

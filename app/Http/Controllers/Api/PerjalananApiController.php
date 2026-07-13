@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PerjalananResource;
 use App\Models\Kendaraan;
 use App\Models\Perjalanan;
 use Illuminate\Http\JsonResponse;
@@ -13,26 +14,34 @@ class PerjalananApiController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'pegawai_id'      => 'nullable|integer|exists:pegawais,id',
+            'kendaraan_id'    => 'nullable|integer|exists:kendaraans,id',
+            'status'          => 'nullable|string|in:balance,boros,anomali',
+            'status_validasi' => 'nullable|string|in:Normal,Perlu Verifikasi,Anomali',
+            'tanggal_dari'    => 'nullable|date',
+            'tanggal_sampai'  => 'nullable|date|after_or_equal:tanggal_dari',
+            'per_page'        => 'nullable|integer|min:1|max:100',
+        ]);
+
         $perjalanans = Perjalanan::with(['pegawai', 'kendaraan'])
-            ->when($request->filled('pegawai_id'), fn ($query) => $query->where('pegawai_id', $request->pegawai_id))
-            ->when($request->filled('kendaraan_id'), fn ($query) => $query->where('kendaraan_id', $request->kendaraan_id))
-            ->when($request->filled('status'), fn ($query) => $query->where('status_efisiensi', $request->status))
-            ->when($request->filled('tanggal_dari'), fn ($query) => $query->whereDate('tanggal', '>=', $request->tanggal_dari))
-            ->when($request->filled('tanggal_sampai'), fn ($query) => $query->whereDate('tanggal', '<=', $request->tanggal_sampai))
-            ->orderByDesc('tanggal')
-            ->orderByDesc('id')
-            ->paginate((int) $request->input('per_page', 15));
+            ->when($validated['pegawai_id'] ?? null, fn ($q, $v) => $q->where('pegawai_id', $v))
+            ->when($validated['kendaraan_id'] ?? null, fn ($q, $v) => $q->where('kendaraan_id', $v))
+            ->when($validated['status'] ?? null, fn ($q, $v) => $q->where('status_efisiensi', $v))
+            ->when($validated['status_validasi'] ?? null, fn ($q, $v) => $q->where('fraud_flags->status_anomali', $v))
+            ->when($validated['tanggal_dari'] ?? null, fn ($q, $v) => $q->whereDate('tanggal', '>=', $v))
+            ->when($validated['tanggal_sampai'] ?? null, fn ($q, $v) => $q->whereDate('tanggal', '<=', $v))
+            ->orderByVehicleTimeline()
+            ->paginate(min((int) ($validated['per_page'] ?? 15), 100));
 
         return response()->json([
             'message' => 'Data perjalanan berhasil diambil.',
-            'data' => $perjalanans->getCollection()
-                ->map(fn (Perjalanan $perjalanan) => $this->formatPerjalanan($perjalanan))
-                ->values(),
-            'meta' => [
+            'data'    => PerjalananResource::collection($perjalanans),
+            'meta'    => [
                 'current_page' => $perjalanans->currentPage(),
-                'last_page' => $perjalanans->lastPage(),
-                'per_page' => $perjalanans->perPage(),
-                'total' => $perjalanans->total(),
+                'last_page'    => $perjalanans->lastPage(),
+                'per_page'     => $perjalanans->perPage(),
+                'total'        => $perjalanans->total(),
             ],
         ]);
     }
@@ -40,8 +49,8 @@ class PerjalananApiController extends Controller
     public function rekap(Request $request): JsonResponse
     {
         $perjalanans = Perjalanan::with(['pegawai', 'kendaraan'])
-            ->when($request->filled('tanggal_dari'), fn ($query) => $query->whereDate('tanggal', '>=', $request->tanggal_dari))
-            ->when($request->filled('tanggal_sampai'), fn ($query) => $query->whereDate('tanggal', '<=', $request->tanggal_sampai))
+            ->when($request->filled('tanggal_dari'), fn ($q) => $q->whereDate('tanggal', '>=', $request->tanggal_dari))
+            ->when($request->filled('tanggal_sampai'), fn ($q) => $q->whereDate('tanggal', '<=', $request->tanggal_sampai))
             ->get();
 
         $totalJarak = $perjalanans->sum('jarak');
@@ -50,19 +59,18 @@ class PerjalananApiController extends Controller
         $rekapPegawai = $perjalanans
             ->groupBy('pegawai_id')
             ->map(function ($data) {
-                $totalJarak = $data->sum('jarak');
-                $totalLiter = $data->sum('vol_liter');
-                $efisiensi = $totalLiter > 0 ? round($totalJarak / $totalLiter, 2) : 0;
-
+                $j = $data->sum('jarak');
+                $l = $data->sum('vol_liter');
+                $e = $l > 0 ? round($j / $l, 2) : 0;
                 return [
-                    'pegawai_id' => $data->first()->pegawai_id,
-                    'nama' => $data->first()->pegawai->nama ?? '-',
+                    'pegawai_id'       => $data->first()->pegawai_id,
+                    'nama'             => $data->first()->pegawai->nama ?? '-',
                     'total_perjalanan' => $data->count(),
-                    'total_jarak' => round($totalJarak, 2),
-                    'total_liter' => round($totalLiter, 2),
+                    'total_jarak'      => round($j, 2),
+                    'total_liter'      => round($l, 2),
                     'total_pengeluaran' => round($data->sum('jumlah_biaya'), 2),
-                    'efisiensi' => $efisiensi,
-                    'status' => Perjalanan::tentukanStatus($efisiensi),
+                    'efisiensi'        => $e,
+                    'status'           => Perjalanan::tentukanStatus($e),
                 ];
             })
             ->sortBy('efisiensi')
@@ -71,21 +79,20 @@ class PerjalananApiController extends Controller
         $rekapKendaraan = $perjalanans
             ->groupBy('kendaraan_id')
             ->map(function ($data) {
-                $totalJarak = $data->sum('jarak');
-                $totalLiter = $data->sum('vol_liter');
-                $efisiensi = $totalLiter > 0 ? round($totalJarak / $totalLiter, 2) : 0;
-                $tipe = $data->first()->kendaraan->tipe ?? 'R4';
-
+                $j = $data->sum('jarak');
+                $l = $data->sum('vol_liter');
+                $e = $l > 0 ? round($j / $l, 2) : 0;
+                $t = $data->first()->kendaraan->tipe ?? 'R4';
                 return [
-                    'kendaraan_id' => $data->first()->kendaraan_id,
-                    'plat_nomor' => $data->first()->kendaraan->plat_nomor ?? '-',
-                    'tipe' => $tipe,
+                    'kendaraan_id'     => $data->first()->kendaraan_id,
+                    'plat_nomor'       => $data->first()->kendaraan->plat_nomor ?? '-',
+                    'tipe'             => $t,
                     'total_perjalanan' => $data->count(),
-                    'total_jarak' => round($totalJarak, 2),
-                    'total_liter' => round($totalLiter, 2),
+                    'total_jarak'      => round($j, 2),
+                    'total_liter'      => round($l, 2),
                     'total_pengeluaran' => round($data->sum('jumlah_biaya'), 2),
-                    'efisiensi' => $efisiensi,
-                    'status' => Perjalanan::tentukanStatus($efisiensi, $tipe),
+                    'efisiensi'        => $e,
+                    'status'           => Perjalanan::tentukanStatus($e, $t),
                 ];
             })
             ->sortBy('efisiensi')
@@ -93,15 +100,15 @@ class PerjalananApiController extends Controller
 
         return response()->json([
             'message' => 'Rekap monitoring berhasil diambil.',
-            'data' => [
-                'statistik' => [
-                    'total_perjalanan' => $perjalanans->count(),
+            'data'    => [
+                'statistik'      => [
+                    'total_perjalanan'  => $perjalanans->count(),
                     'total_pengeluaran' => round($perjalanans->sum('jumlah_biaya'), 2),
-                    'total_liter' => round($totalLiter, 2),
-                    'total_jarak' => round($totalJarak, 2),
-                    'rata_efisiensi' => $totalLiter > 0 ? round($totalJarak / $totalLiter, 2) : 0,
+                    'total_liter'       => round($totalLiter, 2),
+                    'total_jarak'       => round($totalJarak, 2),
+                    'rata_efisiensi'    => $totalLiter > 0 ? round($totalJarak / $totalLiter, 2) : 0,
                 ],
-                'rekap_pegawai' => $rekapPegawai,
+                'rekap_pegawai'  => $rekapPegawai,
                 'rekap_kendaraan' => $rekapKendaraan,
             ],
         ]);
@@ -113,27 +120,27 @@ class PerjalananApiController extends Controller
 
         return response()->json([
             'message' => 'Detail perjalanan berhasil diambil.',
-            'data' => $this->formatPerjalanan($perjalanan),
+            'data'    => new PerjalananResource($perjalanan),
         ]);
     }
 
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'pegawai_id' => 'required|exists:pegawais,id',
-            'kendaraan_id' => 'required|exists:kendaraans,id',
-            'tanggal' => 'required|date',
-            'tujuan' => 'required|string|max:255',
-            'uraian' => 'nullable|string|max:255',
-            'km_lama' => 'required|numeric|min:0',
-            'km_baru' => 'required|numeric|gt:km_lama',
-            'jumlah_biaya' => 'required|numeric|min:1000',
+            'pegawai_id'      => 'required|exists:pegawais,id',
+            'kendaraan_id'    => 'required|exists:kendaraans,id',
+            'tanggal'         => 'required|date',
+            'tujuan'          => 'required|string|max:255',
+            'uraian'          => 'nullable|string|max:255',
+            'km_lama'         => 'required|numeric|min:0',
+            'km_baru'         => 'required|numeric|gt:km_lama',
+            'jumlah_biaya'    => 'required|numeric|min:1000',
             'harga_per_liter' => 'required|numeric|min:1',
-            'no_bon' => 'nullable|string|max:100',
-            'foto_bon' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'no_bon'          => 'nullable|string|max:100',
+            'foto_bon'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        if (!Perjalanan::isNominalGanjil($validated['jumlah_biaya'])) {
+        if (!Perjalanan::isNominalGanjil((float) $validated['jumlah_biaya'])) {
             return $this->validationError('jumlah_biaya', 'Nominal bon harus ganjil-ribuan sesuai aturan Pertamina. Contoh: Rp51.000, Rp101.000.');
         }
 
@@ -141,27 +148,69 @@ class PerjalananApiController extends Controller
             return $this->validationError('no_bon', 'Nomor bon ini sudah pernah diinput untuk kendaraan ini. Kemungkinan bon duplikat.');
         }
 
-        $odometerTerakhir = Perjalanan::getOdometerTerakhir($validated['kendaraan_id']);
-        if ($odometerTerakhir !== null && $validated['km_lama'] < $odometerTerakhir) {
-            return $this->validationError(
-                'km_lama',
-                "KM awal ({$validated['km_lama']}) lebih kecil dari odometer terakhir kendaraan ini ({$odometerTerakhir} km). Odometer tidak bisa mundur."
-            );
+        $jarak    = Perjalanan::hitungJarak((float) $validated['km_lama'], (float) $validated['km_baru']);
+        $volLiter = Perjalanan::hitungVolumeLiter((float) $validated['jumlah_biaya'], (float) $validated['harga_per_liter']);
+
+        if (Perjalanan::isDuplicateRecord($validated['tanggal'], $validated['kendaraan_id'], (float) $validated['km_lama'], (float) $validated['km_baru'], $volLiter)) {
+            return response()->json(['message' => 'Data duplikat.'], 409);
         }
 
-        $jarak = $validated['km_baru'] - $validated['km_lama'];
-        $volLiter = round($validated['jumlah_biaya'] / $validated['harga_per_liter'], 2);
-        $efisiensi = $volLiter > 0 ? round($jarak / $volLiter, 2) : 0;
-
+        $efisiensi = Perjalanan::hitungEfisiensi($jarak, $volLiter);
         $kendaraan = Kendaraan::find($validated['kendaraan_id']);
-        $tipe = $kendaraan->tipe ?? 'R4';
-        $status = Perjalanan::tentukanStatus($efisiensi, $tipe);
+        $tipe      = $kendaraan->jenis ?? 'R4';
+        $bbm       = Perjalanan::inferBBM((float) $validated['harga_per_liter']);
+        $status    = Perjalanan::tentukanStatus($efisiensi, $tipe, $bbm);
 
-        $fraudResult = Perjalanan::hitungFraudScore([
-            ...$validated,
-            'jarak' => $jarak,
-            'efisiensi' => $efisiensi,
-        ]);
+        $verifikasiResult = Perjalanan::hitungIndikasiVerifikasi([
+            ...$validated, 'jarak' => $jarak, 'efisiensi' => $efisiensi,
+        ], null, $tipe);
+
+        $anomaliResult = Perjalanan::hitungAnomali($jarak, $volLiter, $efisiensi, $tipe, $bbm, $verifikasiResult['indikasi'], $status);
+
+        $timeline = Perjalanan::validasiTimeline(
+            (float) $validated['km_lama'],
+            (float) $validated['km_baru'],
+            (int) $validated['kendaraan_id'],
+            null,
+            $validated['tanggal']
+        );
+
+        $displayFlags = [];
+        foreach ($verifikasiResult['indikasi'] as $code) {
+            $displayFlags[] = match ($code) {
+                'no_bon_duplikat'              => 'Bon Duplikat',
+                'harga_tidak_wajar'            => 'Harga Tidak Wajar',
+                'nominal_bon_kelipatan_bulat'  => 'Harga Tidak Wajar',
+                'jarak_melebihi_batas_harian'   => 'Volume Tidak Wajar',
+                'efisiensi_di_luar_batas_mutlak' => 'Volume Tidak Wajar',
+                default                        => '',
+            };
+        }
+        if (in_array($timeline['status'] ?? 'Logis', ['Tidak Logis'])) {
+            $displayFlags[] = 'Timeline Tidak Logis';
+        }
+        if (in_array($timeline['status'] ?? 'Logis', ['Perlu Verifikasi'])) {
+            $displayFlags[] = 'Odometer Mundur';
+        }
+        $displayFlags = array_values(array_unique(array_filter($displayFlags)));
+
+        $fraudScore = match ($anomaliResult['status_anomali']) {
+            'Perlu Verifikasi' => 50,
+            'Anomali'          => ($status === 'balance') ? 50 : 90,
+            default            => ($status === 'anomali') ? 50 : 10,
+        };
+
+        $fraudFlags = [
+            'verifikasi_indikasi' => $verifikasiResult['indikasi'],
+            'total_bobot'         => $verifikasiResult['total_bobot'],
+            'status_anomali'      => $anomaliResult['status_anomali'],
+            'hasil_sewajarnya'    => $anomaliResult['hasil_sewajarnya'],
+            'deviasi'             => $anomaliResult['deviasi'],
+            'keterangan_anomali'  => $anomaliResult['keterangan_anomali'],
+            'timeline_status'     => $timeline['status'] ?? 'Logis',
+            'alasan_timeline'     => $timeline['alasan'],
+            'display_flags'       => $displayFlags,
+        ];
 
         $fotoPath = null;
         if ($request->hasFile('foto_bon')) {
@@ -170,21 +219,18 @@ class PerjalananApiController extends Controller
 
         $perjalanan = Perjalanan::create([
             ...$validated,
-            'jarak' => $jarak,
-            'vol_liter' => $volLiter,
-            'foto_bon' => $fotoPath,
-            'efisiensi' => $efisiensi,
+            'jarak'            => $jarak,
+            'vol_liter'        => $volLiter,
+            'foto_bon'         => $fotoPath,
+            'efisiensi'        => $efisiensi,
             'status_efisiensi' => $status,
-            'fraud_score' => $fraudResult['score'],
-            'fraud_flags' => $fraudResult['flags'],
+            'fraud_score'      => $fraudScore,
+            'fraud_flags'      => $fraudFlags,
         ])->load(['pegawai', 'kendaraan']);
 
         return response()->json([
-            'message' => 'Data perjalanan berhasil disimpan melalui API.',
-            'risk' => $fraudResult['risk'],
-            'fraud_score' => $fraudResult['score'],
-            'fraud_flags' => $fraudResult['flags'],
-            'data' => $this->formatPerjalanan($perjalanan),
+            'message'  => 'Data perjalanan berhasil disimpan melalui API.',
+            'data'     => new PerjalananResource($perjalanan),
         ], 201);
     }
 
@@ -192,49 +238,7 @@ class PerjalananApiController extends Controller
     {
         return response()->json([
             'message' => 'Validasi gagal.',
-            'errors' => [
-                $field => [$message],
-            ],
+            'errors'  => [$field => [$message]],
         ], 422);
-    }
-
-    private function formatPerjalanan(Perjalanan $perjalanan): array
-    {
-        return [
-            'id' => $perjalanan->id,
-            'tanggal' => optional($perjalanan->tanggal)->toDateString(),
-            'pegawai' => [
-                'id' => $perjalanan->pegawai_id,
-                'nama' => $perjalanan->pegawai->nama ?? null,
-            ],
-            'kendaraan' => [
-                'id' => $perjalanan->kendaraan_id,
-                'plat_nomor' => $perjalanan->kendaraan->plat_nomor ?? null,
-                'tipe' => $perjalanan->kendaraan->tipe ?? null,
-            ],
-            'tujuan' => $perjalanan->tujuan,
-            'uraian' => $perjalanan->uraian,
-            'odometer' => [
-                'km_lama' => $perjalanan->km_lama,
-                'km_baru' => $perjalanan->km_baru,
-                'jarak' => $perjalanan->jarak,
-            ],
-            'bbm' => [
-                'vol_liter' => $perjalanan->vol_liter,
-                'harga_per_liter' => $perjalanan->harga_per_liter,
-                'jumlah_biaya' => $perjalanan->jumlah_biaya,
-                'no_bon' => $perjalanan->no_bon,
-                'foto_bon' => $perjalanan->foto_bon,
-                'foto_bon_url' => $perjalanan->foto_bon ? Storage::url($perjalanan->foto_bon) : null,
-            ],
-            'monitoring' => [
-                'efisiensi' => $perjalanan->efisiensi,
-                'status_efisiensi' => $perjalanan->status_efisiensi,
-                'fraud_score' => $perjalanan->fraud_score,
-                'fraud_flags' => $perjalanan->fraud_flags ?? [],
-            ],
-            'created_at' => optional($perjalanan->created_at)->toDateTimeString(),
-            'updated_at' => optional($perjalanan->updated_at)->toDateTimeString(),
-        ];
     }
 }

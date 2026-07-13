@@ -19,9 +19,20 @@ class Kendaraan extends Model
         'tahun' => 'integer',
     ];
 
-    // Relasi ke perjalanan (opsional, siap pakai)
+    // Kolom DB = 'jenis', 'tipe' adalah alias
+    public function getTipeAttribute(): ?string
+    {
+        return $this->attributes['jenis'] ?? null;
+    }
+
+    public function setTipeAttribute(string $value): void
+    {
+        $this->attributes['jenis'] = $value;
+    }
+
+    // Relasi ke perjalanan
     public function perjalanans()
     {
-        return $this->hasMany(\App\Models\Perjalanan::class);
+        return $this->hasMany(Perjalanan::class);
     }
 }

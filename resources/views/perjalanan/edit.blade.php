@@ -521,7 +521,7 @@
             <div style="width:1px;background:#374151;align-self:stretch;"></div>
             <div>
                 <p style="color:#f3f4f6;font-size:.875rem;font-weight:500;margin:0 0 .375rem;">Sistem Informasi Pengelolaan BBM</p>
-                <p style="font-size:.78rem;line-height:1.6;margin:0;color:#6b7280;">Monitoring biaya bahan bakar kendaraan operasional<br>dengan deteksi anomali dan fraud detection otomatis.</p>
+                <p style="font-size:.78rem;line-height:1.6;margin:0;color:#6b7280;">Monitoring biaya bahan bakar kendaraan operasional<br>dengan validasi transaksi otomatis.</p>
             </div>
         </div>
         <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #1f2937;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;font-size:.7rem;">

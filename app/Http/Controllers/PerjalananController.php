@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/PerjalananController.php
 
 namespace App\Http\Controllers;
 
@@ -7,6 +6,7 @@ use App\Exports\PerjalananMonthlyExport;
 use App\Models\Perjalanan;
 use App\Models\Pegawai;
 use App\Models\Kendaraan;
+use App\Services\AnomalyDetectionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -20,13 +20,64 @@ class PerjalananController extends Controller
     // INDEX
     // =========================================================
 
-    public function index(): View
+    public function index(AnomalyDetectionService $service, Request $request): View
     {
-        // Satu query dengan eager-load — hindari N+1
-        $perjalanans = Perjalanan::with('pegawai', 'kendaraan')
-            ->orderBy('kendaraan_id')
-            ->orderBy('tanggal')
-            ->get();
+        $query = Perjalanan::with('pegawai', 'kendaraan')
+            ->orderByVehicleTimeline();
+
+        $perjalanans = $query->get();
+
+        // Timpa fraud_score & fraud_flags di setiap model dengan hasil compute terbaru
+        $computedResults = $service->getAll();
+        $computedById = $computedResults->keyBy(fn(array $r): mixed => $r['perjalanan']->id);
+        $perjalanans->each(function (Perjalanan $p) use ($computedById): void {
+            $r = $computedById->get($p->id);
+            if ($r) {
+                $p->fraud_score = $r['fraud_score'];
+                $p->fraud_flags = $r['fraud_flags'];
+            }
+        });
+
+        // Filter by anomali status if requested
+        if ($request->filter === 'anomali') {
+            $perjalanans = $perjalanans->filter(function (Perjalanan $p): bool {
+                $flags = $p->fraud_flags ?? [];
+                return ($flags['status_anomali'] ?? 'Normal') === 'Anomali';
+            });
+        }
+
+        // Data kurva efisiensi per kendaraan
+        $chartColors = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16'];
+        $chartData   = [];
+
+        $allDates = $perjalanans->pluck('tanggal')->unique()->sort()->values();
+        $allDateLabels = $allDates->map(fn($d) => $d->format('d/m/Y'));
+
+        $perjalanans->groupBy('kendaraan_id')->each(function ($trips) use (&$chartData, $chartColors, $allDates) {
+            $kendaraan = $trips->first()->kendaraan;
+            $byDate    = $trips->keyBy(fn($t) => $t->tanggal->format('Y-m-d'));
+            $i         = count($chartData);
+
+            $chartData[] = [
+                'label' => $kendaraan->plat_nomor ?? $kendaraan->nomor_polisi ?? '-',
+                'merk'  => $kendaraan->merk,
+                'color' => $chartColors[$i % count($chartColors)],
+                'points' => $allDates->map(function ($date) use ($byDate) {
+                    $key = $date->format('Y-m-d');
+                    $t   = $byDate[$key] ?? null;
+                    return [
+                        'x'        => $date->format('d/m/Y'),
+                        'y'        => $t?->efisiensi,
+                        'fullDate' => $date->format('d/m/Y'),
+                        'status'   => $t?->status_efisiensi,
+                        'pegawai'  => $t?->pegawai?->nama ?? '-',
+                        'jarak'    => $t?->jarak,
+                        'volume'   => $t?->vol_liter,
+                        'tujuan'   => $t?->tujuan,
+                    ];
+                }),
+            ];
+        });
 
         // Rekap per pegawai dari koleksi yang sudah diambil (tidak query ulang)
         $rekapPegawai = $perjalanans
@@ -34,7 +85,6 @@ class PerjalananController extends Controller
             ->map(function ($data) {
                 $avg  = $data->avg('efisiensi') ?? 0.0;
                 $tipe = $data->first()->kendaraan->jenis ?? 'R4';
-
                 return [
                     'nama'             => $data->first()->pegawai->nama ?? '-',
                     'total_perjalanan' => $data->count(),
@@ -47,7 +97,14 @@ class PerjalananController extends Controller
             })
             ->sortBy('avg_efisiensi');
 
-        return view('perjalanan.index', compact('perjalanans', 'rekapPegawai'));
+        // Prepare JSON data for the validation modal
+        $perjalananJson = $service->getPerjalananJson();
+        if ($request->filter === 'anomali') {
+            $filteredIds = $perjalanans->pluck('id')->toArray();
+            $perjalananJson = $perjalananJson->filter(fn(array $item): bool => in_array($item['id'], $filteredIds))->values();
+        }
+
+        return view('perjalanan.index', compact('perjalanans', 'chartData', 'rekapPegawai', 'perjalananJson'));
     }
 
     public function exportExcel(Request $request): BinaryFileResponse
@@ -62,8 +119,7 @@ class PerjalananController extends Controller
         $perjalanans = Perjalanan::with('pegawai', 'kendaraan')
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
-            ->orderBy('tanggal')
-            ->orderBy('id')
+            ->orderByVehicleTimeline()
             ->get();
 
         $filename = sprintf('laporan-perjalanan-%04d-%02d.xlsx', $tahun, $bulan);
@@ -80,8 +136,6 @@ class PerjalananController extends Controller
         $pegawais   = Pegawai::all();
         $kendaraans = Kendaraan::all();
 
-        // Ditampilkan sebagai referensi informatif bagi admin,
-        // bukan sebagai batas validasi input.
         $kmTerakhir = [];
         foreach ($kendaraans as $kendaraan) {
             $kmTerakhir[$kendaraan->id] = Perjalanan::getOdometerTerakhir($kendaraan->id);
@@ -98,9 +152,6 @@ class PerjalananController extends Controller
     {
         $validated = $this->validatePerjalanan($request);
 
-        // Validasi bisnis: bon & duplikasi nomor bon.
-        // Validasi historis odometer (odometer_mundur) tidak dilakukan karena
-        // admin menginput berdasarkan bon tanpa mengetahui urutan perjalanan.
         $bonError   = $this->validateBon($validated);
         $noBonError = $this->validateNoBon($validated);
 
@@ -113,12 +164,23 @@ class PerjalananController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        if (Perjalanan::isDuplicateRecord(
+            $validated['tanggal'],
+            $validated['kendaraan_id'],
+            (float) $validated['km_lama'],
+            (float) $validated['km_baru'],
+            Perjalanan::hitungVolumeLiter((float) $validated['jumlah_biaya'], (float) $validated['harga_per_liter']),
+        )) {
+            return back()->with('warning', 'Data ini sudah pernah dicatat. Hindari entry ganda.')
+                ->withInput();
+        }
+
         $payload = $this->buildPerjalananPayload($validated, $request);
 
         Perjalanan::create($payload);
 
         return redirect()->route('perjalanan.index')
-            ->with(...$this->buildFlashMessage($payload['fraud_score'], $payload['fraud_flags']));
+            ->with(...$this->buildFlashMessage($payload));
     }
 
     // =========================================================
@@ -141,9 +203,6 @@ class PerjalananController extends Controller
     {
         $validated = $this->validatePerjalanan($request);
 
-        // Validasi bon & duplikasi nomor bon — exclude record yang sedang diedit.
-        // Validasi historis odometer (odometer_mundur) tidak dilakukan karena
-        // admin menginput berdasarkan bon tanpa mengetahui urutan perjalanan.
         $bonError   = $this->validateBon($validated, $perjalanan->id);
         $noBonError = $this->validateNoBon($validated, $perjalanan->id);
 
@@ -156,7 +215,18 @@ class PerjalananController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
-        // Hitung ulang semua nilai turunan — sama seperti store()
+        if (Perjalanan::isDuplicateRecord(
+            $validated['tanggal'],
+            $validated['kendaraan_id'],
+            (float) $validated['km_lama'],
+            (float) $validated['km_baru'],
+            Perjalanan::hitungVolumeLiter((float) $validated['jumlah_biaya'], (float) $validated['harga_per_liter']),
+            $perjalanan->id,
+        )) {
+            return back()->with('warning', 'Data ini sudah pernah dicatat untuk kendaraan ini. Hindari duplikasi.')
+                ->withInput();
+        }
+
         $payload = $this->buildPerjalananPayload($validated, $request, $perjalanan);
 
         $perjalanan->update($payload);
@@ -185,10 +255,6 @@ class PerjalananController extends Controller
     // PRIVATE HELPERS
     // =========================================================
 
-    /**
-     * Aturan validasi request yang dipakai oleh store() dan update().
-     * Dipisahkan agar DRY dan mudah diubah di satu tempat.
-     */
     private function validatePerjalanan(Request $request): array
     {
         return $request->validate([
@@ -206,10 +272,6 @@ class PerjalananController extends Controller
         ]);
     }
 
-    /**
-     * Validasi nominal bon: harus kelipatan Rp1.000, bukan kelipatan Rp10.000.
-     * Mengembalikan pesan error atau null jika valid.
-     */
     private function validateBon(array $validated, ?int $excludeId = null): ?string
     {
         if (!Perjalanan::isNominalGanjil((float) $validated['jumlah_biaya'])) {
@@ -219,10 +281,6 @@ class PerjalananController extends Controller
         return null;
     }
 
-    /**
-     * Validasi nomor bon tidak duplikat.
-     * Mengembalikan pesan error atau null jika valid.
-     */
     private function validateNoBon(array $validated, ?int $excludeId = null): ?string
     {
         if (
@@ -235,17 +293,6 @@ class PerjalananController extends Controller
         return null;
     }
 
-    /**
-     * Bangun array payload lengkap yang siap disimpan ke database.
-     * Menghitung semua nilai turunan: jarak, vol_liter, efisiensi,
-     * status_efisiensi, status_reason, fraud_score, fraud_flags.
-     *
-     * Dipakai oleh store() dan update() — single source of truth.
-     *
-     * @param  array          $validated  Data yang sudah lolos validasi request
-     * @param  Request        $request    Dipakai untuk mengambil file foto_bon
-     * @param  Perjalanan|null $existing  Record lama (saat update); null saat create
-     */
     private function buildPerjalananPayload(
         array      $validated,
         Request    $request,
@@ -253,30 +300,87 @@ class PerjalananController extends Controller
     ): array {
         $excludeId = $existing?->id;
 
-        // --- Kalkulasi turunan ---
         $jarak     = Perjalanan::hitungJarak((float) $validated['km_lama'], (float) $validated['km_baru']);
         $volLiter  = Perjalanan::hitungVolumeLiter((float) $validated['jumlah_biaya'], (float) $validated['harga_per_liter']);
         $efisiensi = Perjalanan::hitungEfisiensi($jarak, $volLiter);
 
         $kendaraan = Kendaraan::find($validated['kendaraan_id']);
         $tipe      = $kendaraan->jenis ?? 'R4';
-        $status    = Perjalanan::tentukanStatus($efisiensi, $tipe);
+        $bbm       = Perjalanan::inferBBM((float) $validated['harga_per_liter']);
+        $status    = Perjalanan::tentukanStatus($efisiensi, $tipe, $bbm);
 
-        // Ambil rata-rata historis untuk status_reason
-        $statistik    = Perjalanan::getStatistikEfisiensi($validated['kendaraan_id'], $excludeId);
-        $statusReason = Perjalanan::generateStatusReason($efisiensi, $tipe, $status, $statistik['avg']);
+        $statusReason = Perjalanan::generateStatusReason($efisiensi, $tipe, $status, $bbm);
 
-        // --- Fraud detection ---
-        $fraudResult = Perjalanan::hitungFraudScore([
+        // --- Indikasi Verifikasi (menggantikan fraud detection) ---
+        $verifikasiResult = Perjalanan::hitungIndikasiVerifikasi([
             ...$validated,
             'jarak'     => $jarak,
             'efisiensi' => $efisiensi,
-        ], $excludeId);
+        ], $excludeId, $tipe);
+
+        // --- Anomali Detection ---
+        $anomaliResult = Perjalanan::hitungAnomali(
+            $jarak,
+            $volLiter,
+            $efisiensi,
+            $tipe,
+            $bbm,
+            $verifikasiResult['indikasi'],
+            $status,
+        );
+
+        // --- Timeline Validation ---
+        $timeline = Perjalanan::validasiTimeline(
+            (float) $validated['km_lama'],
+            (float) $validated['km_baru'],
+            (int) $validated['kendaraan_id'],
+            $excludeId,
+            $validated['tanggal']
+        );
+
+        // Map anomaly status to fraud_score (existing column - kept for backend)
+        $fraudScore = match($anomaliResult['status_anomali']) {
+            'Perlu Verifikasi' => 50,
+            'Anomali'          => ($status === 'balance') ? 50 : 90,
+            default => ($status === 'anomali') ? 50 : 10,
+        };
+
+        // Build display flags
+        $displayFlags = [];
+        foreach ($verifikasiResult['indikasi'] as $code) {
+            $displayFlags[] = match ($code) {
+                'no_bon_duplikat'              => 'Bon Duplikat',
+                'harga_tidak_wajar'            => 'Harga Tidak Wajar',
+                'nominal_bon_kelipatan_bulat'  => 'Harga Tidak Wajar',
+                'jarak_melebihi_batas_harian'   => 'Volume Tidak Wajar',
+                'efisiensi_di_luar_batas_mutlak' => 'Volume Tidak Wajar',
+                default                        => '',
+            };
+        }
+        if (in_array($timeline['status'] ?? 'Logis', ['Tidak Logis'])) {
+            $displayFlags[] = 'Timeline Tidak Logis';
+        }
+        if (in_array($timeline['status'] ?? 'Logis', ['Perlu Verifikasi'])) {
+            $displayFlags[] = 'Odometer Mundur';
+        }
+        $displayFlags = array_values(array_unique(array_filter($displayFlags)));
+
+        // Store computed data in fraud_flags (existing column) as JSON
+        $fraudFlags = [
+            'verifikasi_indikasi' => $verifikasiResult['indikasi'],
+            'total_bobot'         => $verifikasiResult['total_bobot'],
+            'status_anomali'      => $anomaliResult['status_anomali'],
+            'hasil_sewajarnya'    => $anomaliResult['hasil_sewajarnya'],
+            'deviasi'             => $anomaliResult['deviasi'],
+            'keterangan_anomali'  => $anomaliResult['keterangan_anomali'],
+            'timeline_status'     => $timeline['status'] ?? 'Logis',
+            'alasan_timeline'     => $timeline['alasan'],
+            'display_flags'       => $displayFlags,
+        ];
 
         // --- Foto bon ---
         $fotoPath = $existing?->foto_bon;
         if ($request->hasFile('foto_bon')) {
-            // Hapus foto lama jika ada
             if ($fotoPath) {
                 Storage::disk('public')->delete($fotoPath);
             }
@@ -291,29 +395,30 @@ class PerjalananController extends Controller
             'status_efisiensi' => $status,
             'status_reason'    => $statusReason,
             'foto_bon'         => $fotoPath,
-            'fraud_score'      => $fraudResult['score'],
-            'fraud_flags'      => $fraudResult['flags'],
+            'fraud_score'      => $fraudScore,
+            'fraud_flags'      => $fraudFlags,
         ];
     }
 
-    /**
-     * Bangun argumen flash message berdasarkan hasil fraud detection.
-     * Mengembalikan [$flashType, $pesan] yang langsung bisa di-spread ke with().
-     */
-    private function buildFlashMessage(int $fraudScore, array $fraudFlags): array
+    private function buildFlashMessage(array $payload): array
     {
-        $risk = Perjalanan::interpretRisk($fraudScore);
+        $flags = $payload['fraud_flags'] ?? [];
+        $statusAnomali = $flags['status_anomali'] ?? 'Normal';
 
-        $pesan = match ($risk) {
-            'aman'         => 'Data perjalanan berhasil disimpan.',
-            'perhatian'    => 'Data disimpan. Terdapat catatan minor: ' . implode(', ', $fraudFlags) . '.',
-            'mencurigakan' => 'Data disimpan namun terdeteksi ' . count($fraudFlags) . ' indikasi anomali. Harap review.',
-            'tinggi'       => 'Data disimpan. PERINGATAN: Skor kecurangan tinggi (' . $fraudScore . '). Segera laporkan ke atasan.',
-            default        => 'Data disimpan.',
-        };
+        if ($statusAnomali === 'Anomali') {
+            return [
+                'warning',
+                'Data disimpan. Status: Anomali. Data perjalanan perlu diverifikasi lebih lanjut.',
+            ];
+        }
 
-        $flashType = in_array($risk, ['mencurigakan', 'tinggi'], true) ? 'warning' : 'success';
+        if ($statusAnomali === 'Perlu Verifikasi') {
+            return [
+                'warning',
+                'Data disimpan. Status: Perlu Verifikasi. Terdapat indikasi yang perlu diperiksa.',
+            ];
+        }
 
-        return [$flashType, $pesan];
+        return ['success', 'Data perjalanan berhasil disimpan.'];
     }
 }

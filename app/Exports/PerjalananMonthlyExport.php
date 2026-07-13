@@ -76,13 +76,18 @@ class PerjalananMonthlyExport implements FromView, ShouldAutoSize, WithDrawings,
                 $sheet->getPageMargins()->setTop(0.5)->setRight(0.3)->setBottom(0.5)->setLeft(0.3);
                 $sheet->freezePane('A6');
 
+                // Baris judul & info
                 $sheet->getRowDimension(1)->setRowHeight(34);
                 $sheet->getRowDimension($headerRow)->setRowHeight(32);
                 $sheet->getStyle('A1:L3')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
                 $sheet->getStyle('A1:L3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('A1:L1')->getFont()->setBold(true)->setSize(13);
+                $sheet->getStyle('A2:L2')->getFont()->setSize(10);
+                $sheet->getStyle('A3:L3')->getFont()->setSize(10);
+
+                // Header tabel (baris 5) — merah
                 $sheet->getStyle("A{$headerRow}:L{$headerRow}")->applyFromArray([
-                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 9],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D71920']],
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -91,40 +96,56 @@ class PerjalananMonthlyExport implements FromView, ShouldAutoSize, WithDrawings,
                     ],
                 ]);
 
+                // Border semua sel data + header
                 $sheet->getStyle("A{$headerRow}:L{$totalRow}")->getBorders()->getAllBorders()
                     ->setBorderStyle(Border::BORDER_THIN)
                     ->getColor()->setRGB('555555');
-                $sheet->getStyle("A{$firstDataRow}:L{$lastDataRow}")->getAlignment()
-                    ->setVertical(Alignment::VERTICAL_CENTER)
-                    ->setWrapText(true);
+
+                // Alignment data
+                $sheet->getStyle("A{$firstDataRow}:L{$lastDataRow}")
+                    ->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+
                 $sheet->getStyle("A{$firstDataRow}:A{$lastDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle("B{$firstDataRow}:B{$lastDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle("D{$firstDataRow}:J{$lastDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle("F{$firstDataRow}:F{$lastDataRow}")->getNumberFormat()->setFormatCode('0.00');
-                $sheet->getStyle("G{$firstDataRow}:J{$lastDataRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheet->getStyle("K{$firstDataRow}:L{$totalRow}")->getNumberFormat()->setFormatCode('[$Rp-421] #,##0');
+                $sheet->getStyle("E{$firstDataRow}:J{$lastDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("K{$firstDataRow}:L{$totalRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
+                // Format angka Indonesia
+                $sheet->getStyle("G{$firstDataRow}:G{$lastDataRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet->getStyle("H{$firstDataRow}:J{$lastDataRow}")->getNumberFormat()->setFormatCode('#,##0');
+                $sheet->getStyle("K{$firstDataRow}:K{$totalRow}")->getNumberFormat()->setFormatCode('[$Rp-421] #,##0');
+                $sheet->getStyle("L{$firstDataRow}:L{$totalRow}")->getNumberFormat()->setFormatCode('[$Rp-421] #,##0');
+
+                // Total (SUM)
                 if ($this->perjalanans->isNotEmpty()) {
                     $sheet->setCellValue("L{$totalRow}", "=SUM(L{$firstDataRow}:L{$lastDataRow})");
                 } else {
                     $sheet->setCellValue("L{$totalRow}", 0);
                 }
 
+                // Styling total row
                 $sheet->getStyle("A{$totalRow}:L{$totalRow}")->getFont()->setBold(true);
                 $sheet->getStyle("A{$totalRow}:L{$totalRow}")->getFill()
                     ->setFillType(Fill::FILL_SOLID)
                     ->getStartColor()->setRGB('FCE8E8');
-                $sheet->getStyle("A{$footerStartRow}:L".($footerStartRow + 3))->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                $sheet->getColumnDimension('A')->setWidth(7);
-                $sheet->getColumnDimension('B')->setWidth(14);
-                $sheet->getColumnDimension('C')->setWidth(32);
-                $sheet->getColumnDimension('D')->setWidth(19);
-                $sheet->getColumnDimension('E')->setWidth(15);
-                foreach (range('F', 'L') as $column) {
-                    $sheet->getColumnDimension($column)->setWidth(14);
-                }
+                // Signature area — center
+                $sheet->getStyle("A{$footerStartRow}:L".($footerStartRow + 3))
+                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                // Column widths
+                $sheet->getColumnDimension('A')->setWidth(5);
+                $sheet->getColumnDimension('B')->setWidth(13);
+                $sheet->getColumnDimension('C')->setWidth(40);
+                $sheet->getColumnDimension('D')->setWidth(28);
+                $sheet->getColumnDimension('E')->setWidth(16);
+                $sheet->getColumnDimension('F')->setWidth(14);
+                $sheet->getColumnDimension('G')->setWidth(12);
+                $sheet->getColumnDimension('H')->setWidth(12);
+                $sheet->getColumnDimension('I')->setWidth(12);
+                $sheet->getColumnDimension('J')->setWidth(10);
+                $sheet->getColumnDimension('K')->setWidth(14);
+                $sheet->getColumnDimension('L')->setWidth(16);
             },
         ];
     }

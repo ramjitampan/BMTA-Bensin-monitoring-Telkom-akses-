@@ -277,10 +277,6 @@ tailwind.config = {
          class="nav-link-item {{ request()->routeIs('perjalanan.*') ? 'active' : '' }}">
         Data Perjalanan
       </a>
-      <a href="{{ route('ai.dashboard') }}"
-         class="nav-link-item {{ request()->routeIs('ai.dashboard') ? 'active' : '' }}">
-        AI Analyst
-      </a>
       <a href="{{ route('perjalanan.index') }}"
          class="ml-3 inline-flex items-center gap-2 bg-gradient-to-br from-ta-red to-ta-dark text-white font-semibold text-[0.93rem] px-5 py-2.5 rounded-full shadow-[0_6px_18px_rgba(226,0,26,0.32)] hover:brightness-105 hover:-translate-y-[1px] transition-all">
         <i class="fa-solid fa-gauge-high text-sm"></i> Dashboard
@@ -320,11 +316,6 @@ tailwind.config = {
        class="nav-link-item block {{ request()->routeIs('perjalanan.*') ? 'active' : '' }}">
       <i class="fa-solid fa-route mr-1.5 text-sm"></i> Data Perjalanan
     </a>
-    <a href="{{ route('ai.dashboard') }}"
-       class="nav-link-item block {{ request()->routeIs('ai.dashboard') ? 'active' : '' }}">
-      <i class="fa-solid fa-robot mr-1.5 text-sm"></i> AI Analyst
-    </a>
-
     <a href="{{ route('perjalanan.index') }}"
        class="mt-2 flex items-center justify-center gap-2 bg-gradient-to-br from-ta-red to-ta-dark text-white font-semibold text-sm px-5 py-2.5 rounded-full shadow-[0_6px_18px_rgba(226,0,26,0.28)]">
       <i class="fa-solid fa-gauge-high"></i> Dashboard Monitoring

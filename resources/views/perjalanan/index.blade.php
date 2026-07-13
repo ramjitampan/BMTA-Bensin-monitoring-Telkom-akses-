@@ -39,8 +39,8 @@
   font-size: 22px; font-weight: 800;
   color: #111827; letter-spacing: -0.03em; margin: 0;
 }
-.btn-add-mobile {
-  display: none;
+.btn-add {
+  display: inline-flex;
   align-items: center; gap: 8px;
   background: #8B0000; color: #fff;
   font-size: 13px; font-weight: 600;
@@ -49,7 +49,7 @@
   white-space: nowrap; flex-shrink: 0;
   cursor: pointer;
 }
-.btn-add-mobile svg { width: 14px; height: 14px; }
+.btn-add svg { width: 14px; height: 14px; }
 .btn-export {
   display: inline-flex;
   align-items: center;
@@ -170,6 +170,85 @@
 @keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:0.5} }
 .badge-pulse  { animation: pulse-badge 1.8s ease-in-out infinite; }
 
+/* ── MOBILE CARD REDESIGN ── */
+.m-card {
+  background: #fff; border-radius: 14px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  margin-bottom: 12px; overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.m-card.is-anomali { border-left: 4px solid #dc2626; }
+.m-card.is-verifikasi { border-left: 4px solid #f59e0b; }
+.m-card-head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 10px;
+  padding: 14px 14px 0;
+}
+.m-card-user { display: flex; align-items: center; gap: 10px; }
+.m-card-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #8B0000; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.m-card-name { font-size: 14px; font-weight: 700; color: #111827; line-height: 1.2; }
+.m-card-date { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+.m-card-badges { flex-shrink: 0; }
+.m-card-badges .badge { font-size: 9px; padding: 2px 6px; }
+.m-card-body { padding: 10px 14px 6px; }
+.m-card-row {
+  display: flex; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid #f5f5f5;
+}
+.m-card-row:last-of-type { border-bottom: none; }
+.m-card-field { flex: 1; }
+.m-card-num { text-align: right; }
+.m-card-label {
+  display: block; font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #9ca3af; margin-bottom: 2px;
+}
+.m-card-value { font-size: 13px; font-weight: 600; color: #374151; }
+.m-card-flags {
+  display: flex; flex-wrap: wrap; gap: 3px;
+  padding: 6px 0 0; margin-top: 4px;
+  border-top: 1px solid #f5f5f5;
+}
+.m-card-flags .flag-chip { font-size: 9px; }
+.m-card-actions {
+  display: flex; gap: 6px;
+  padding: 10px 14px; background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+.m-btn {
+  flex: 1; padding: 9px 8px; text-align: center;
+  border-radius: 8px; font-size: 11px; font-weight: 600;
+  text-decoration: none; cursor: pointer; border: none;
+  transition: background 0.1s;
+}
+.m-btn-edit  { color: #2563eb; border: 1px solid #bfdbfe; background: #fff; }
+.m-btn-edit:hover { background: #eff6ff; }
+.m-btn-del   { color: #dc2626; border: 1px solid #fecaca; background: #fff; }
+.m-btn-del:hover { background: #fef2f2; }
+.m-btn-photo { color: #6b7280; border: 1px solid #e5e7eb; background: #fff; }
+.m-btn-photo:hover { background: #f9fafb; }
+.m-btn-detail { color: #8B0000; border: 1px solid #fecaca; background: #fff; }
+.m-btn-detail:hover { background: #fef2f2; }
+
+/* ── FLOATING ADD BUTTON (MOBILE) ── */
+.m-fab {
+  display: none;
+  position: fixed; bottom: 24px; right: 24px; z-index: 50;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #8B0000; color: #fff;
+  align-items: center; justify-content: center;
+  text-decoration: none; box-shadow: 0 4px 16px rgba(139,0,0,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.m-fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(139,0,0,0.45); }
+.m-fab svg { width: 24px; height: 24px; }
+
 /* ── FRAUD FLAGS ── */
 .flag-chip {
   display: inline-block;
@@ -179,12 +258,6 @@
   font-family: 'JetBrains Mono', monospace;
   white-space: nowrap; margin: 1px;
 }
-
-/* ── RISK BAR ── */
-.risk-bar-wrap { display: flex; align-items: center; gap: 5px; }
-.risk-bar-bg   { width: 40px; height: 4px; background: #f3f4f6; border-radius: 2px; overflow: hidden; }
-.risk-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
-.risk-score    { font-size: 9.5px; color: #9ca3af; font-family: 'JetBrains Mono', monospace; }
 
 /* ── TABLE ACTION BUTTONS ── */
 .tbl-edit {
@@ -224,45 +297,65 @@
 .empty-state { padding: 48px 20px; text-align: center; color: #d1d5db; }
 .empty-state a { color: #8B0000; text-decoration: underline; }
 
-/* ── MOBILE CARDS ── */
-.trip-cards-mobile { display: none; }
-.trip-card {
-  background: #fff; border-radius: 12px;
+/* ── MOBILE CARDS WRAPPER ── */
+.trip-cards-mobile { display: none; flex-direction: column; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.5);
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: #fff; border-radius: 16px;
+  max-width: 640px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px; border-bottom: 1px solid #f0f0f0;
+}
+.modal-header h3 { font-size: 16px; font-weight: 700; margin: 0; }
+.modal-close {
+  background: none; border: none; font-size: 20px;
+  color: #9ca3af; cursor: pointer; padding: 4px;
+}
+.modal-close:hover { color: #111827; }
+.modal-body { padding: 24px; }
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+.detail-field .label {
+  display: block; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: #9ca3af; margin-bottom: 4px;
+}
+.detail-field .value {
+  font-size: 14px; font-weight: 600; color: #111827;
+}
+.detail-field .value.mono { font-family: 'JetBrains Mono', monospace; }
+.detail-full {
+  grid-column: 1 / -1;
+}
+.detail-keterangan {
+  margin-top: 20px; padding: 16px;
+  background: #fafafa; border-radius: 10px;
   border: 1px solid #f0f0f0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  padding: 16px; margin-bottom: 10px;
 }
-.trip-card.risk-high { border-left: 4px solid #dc2626; }
-.trip-card.risk-mid  { border-left: 4px solid #f59e0b; }
-.trip-card-top {
-  display: flex; justify-content: space-between;
-  gap: 10px; margin-bottom: 12px;
+.detail-keterangan .label {
+  display: block; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: #9ca3af; margin-bottom: 6px;
 }
-.trip-card-name { font-weight: 700; font-size: 14px; color: #111827; }
-.trip-card-sub  { font-size: 11px; color: #6b7280; margin-top: 2px; }
-.trip-card-badges {
-  display: flex; flex-direction: column;
-  align-items: flex-end; gap: 4px; flex-shrink: 0;
+.detail-keterangan .value {
+  font-size: 13px; color: #374151; line-height: 1.5;
 }
-.trip-card-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px 16px; margin-bottom: 12px;
-}
-.trip-card-field span:first-child { display: block; font-size: 10px; color: #9ca3af; margin-bottom: 2px; }
-.trip-card-field span:last-child  { font-size: 12px; font-weight: 600; color: #111827; }
-.trip-card-flags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 12px; }
-.trip-card-actions {
-  display: flex; gap: 8px;
-  border-top: 1px solid #f5f5f5; padding-top: 12px;
-}
-.btn-edit, .btn-del, .btn-photo {
-  flex: 1; padding: 9px; text-align: center;
-  border-radius: 8px; font-size: 12px; font-weight: 600;
-  text-decoration: none; cursor: pointer; border: none;
-}
-.btn-edit  { color: #2563eb; border: 1px solid #bfdbfe; background: #fff; }
-.btn-del   { color: #dc2626; border: 1px solid #fecaca; background: #fff; }
-.btn-photo { color: #6b7280; border: 1px solid #f0f0f0; background: #fff; }
 
 /* ── HELPERS ── */
 .num      { text-align: right; font-family: 'JetBrains Mono', monospace; }
@@ -284,14 +377,17 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .main-content        { padding: 20px 16px; }
+  .main-content        { padding: 20px 16px; padding-bottom: 96px; }
   .page-header         { flex-direction: column; align-items: stretch; }
-  .btn-add-mobile      { display: inline-flex; }
+  .page-header .btn-add { display: none; }
   .stat-grid           { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat-value          { font-size: 24px; }
   .stat-rp             { font-size: 16px; }
   .trip-table-desktop  { display: none !important; }
-  .trip-cards-mobile   { display: block; }
+  .trip-cards-mobile   { display: flex; }
+  .m-fab               { display: flex; }
+  .modal-box           { max-width: 100%; margin: 10px; }
+  .detail-grid         { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .stat-grid { grid-template-columns: 1fr 1fr; }
@@ -360,7 +456,7 @@
           Export Excel
         </button>
       </form>
-      <a href="{{ route('perjalanan.create') }}" class="btn-add-mobile">
+      <a href="{{ route('perjalanan.create') }}" class="btn-add">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
         </svg>
@@ -371,8 +467,15 @@
 
   {{-- ── Stat Cards ── --}}
   @php
-    $totalAnomali     = $perjalanans->where('status_efisiensi', 'anomali')->count();
-    $totalFraudTinggi = $perjalanans->where('fraud_score', '>', 50)->count();
+    $totalAnomali       = $perjalanans->where('status_efisiensi', 'anomali')->count();
+    $totalPerluVerifikasi = $perjalanans->filter(function ($p) {
+        $flags = $p->fraud_flags ?? [];
+        return ($flags['status_anomali'] ?? 'Normal') === 'Perlu Verifikasi';
+    })->count();
+    $totalStatusAnomali = $perjalanans->filter(function ($p) {
+        $flags = $p->fraud_flags ?? [];
+        return ($flags['status_anomali'] ?? 'Normal') === 'Anomali';
+    })->count();
   @endphp
   <div class="stat-grid">
     <div class="stat-card anim-up delay-1">
@@ -386,14 +489,14 @@
       <p class="stat-sub">{{ number_format($perjalanans->sum('vol_liter'), 1, ',', '.') }} liter</p>
     </div>
     <div class="stat-card anim-up delay-3">
-      <p class="stat-label">Data Anomali</p>
-      <p class="stat-value {{ $totalAnomali > 0 ? 'danger' : '' }}" data-count="{{ $totalAnomali }}">0</p>
+      <p class="stat-label">Perlu Verifikasi</p>
+      <p class="stat-value {{ $totalPerluVerifikasi > 0 ? 'danger' : '' }}" data-count="{{ $totalPerluVerifikasi }}">0</p>
       <p class="stat-sub">dari {{ $perjalanans->count() }} trip</p>
     </div>
     <div class="stat-card anim-up delay-4">
-      <p class="stat-label">Fraud Risk Tinggi</p>
-      <p class="stat-value {{ $totalFraudTinggi > 0 ? 'danger' : '' }}" data-count="{{ $totalFraudTinggi }}">0</p>
-      <p class="stat-sub">perlu tindak lanjut</p>
+      <p class="stat-label">Anomali</p>
+      <p class="stat-value {{ $totalStatusAnomali > 0 ? 'danger' : '' }}" data-count="{{ $totalStatusAnomali }}">0</p>
+      <p class="stat-sub">{{ $totalStatusAnomali > 0 ? 'perlu ditindaklanjuti' : 'tidak ada' }}</p>
     </div>
   </div>
 
@@ -495,8 +598,9 @@
             <th class="top bg-amber" colspan="3" style="text-align:center;border-bottom:1px solid #fde68a">Bon BBM</th>
             <th class="top" rowspan="2" style="text-align:center">Foto</th>
             <th class="top" rowspan="2" style="text-align:center">Efisiensi</th>
-            <th class="top" rowspan="2" style="text-align:center">Status</th>
-            <th class="top bg-red" colspan="2" style="text-align:center;border-bottom:1px solid #fecaca">Fraud Detection</th>
+            <th class="top" rowspan="2" style="text-align:center">Status<br>Efisiensi</th>
+            <th class="top" rowspan="2" style="text-align:center">Status<br>Validasi</th>
+            <th class="top" rowspan="2" style="text-align:center;min-width:140px">Indikasi</th>
             <th class="top" rowspan="2" style="text-align:center">Aksi</th>
           </tr>
           <tr>
@@ -506,18 +610,15 @@
             <th class="sub bg-amber">No Bon</th>
             <th class="sub bg-amber">Harga/L</th>
             <th class="sub bg-amber">Jumlah</th>
-            <th class="sub bg-red">Risk</th>
-            <th class="sub bg-red" style="min-width:140px">Flags</th>
           </tr>
         </thead>
         <tbody>
           @forelse($perjalanans as $p)
           @php
-            $score  = $p->fraud_score ?? 0;
-            $risk   = $score > 50 ? 'high' : ($score > 30 ? 'mid' : ($score > 0 ? 'low' : 'safe'));
-            $flags  = $p->fraud_flags ?? [];
-            $rowCls = match($risk){ 'high' => 'row-red', 'mid' => 'row-amber', default => '' };
-            $barClr = match($risk){ 'high' => '#dc2626', 'mid' => '#f59e0b', 'low' => '#fbbf24', default => '#22c55e' };
+            $flagsData      = $p->fraud_flags ?? [];
+            $statusValidasi = $flagsData['status_anomali'] ?? 'Normal';
+            $displayFlags   = $flagsData['display_flags'] ?? [];
+            $rowCls         = match($statusValidasi){ 'Anomali' => 'row-red', 'Perlu Verifikasi' => 'row-amber', default => '' };
           @endphp
           <tr class="{{ $rowCls }}">
             <td class="muted" style="font-size:10px">{{ $loop->iteration }}</td>
@@ -573,41 +674,19 @@
               @endif
             </td>
             <td class="center">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                @if($risk === 'safe')
-                  <span class="badge badge-green">Aman ✓</span>
-                @elseif($risk === 'low')
-                  <span class="badge badge-yellow">Perhatian</span>
-                @elseif($risk === 'mid')
-                  <span class="badge badge-orange">Curiga ⚠</span>
-                @else
-                  <span class="badge badge-red badge-pulse">Tinggi ⛔</span>
-                @endif
-                <div class="risk-bar-wrap">
-                  <div class="risk-bar-bg">
-                    <div class="risk-bar-fill" style="width:{{ min($score,100) }}%;background:{{ $barClr }}"></div>
-                  </div>
-                  <span class="risk-score">{{ $score }}</span>
-                </div>
-              </div>
+              @if($statusValidasi === 'Normal')
+                <span class="badge badge-green" style="cursor:pointer" onclick="openModal({{ $loop->index }})">Normal</span>
+              @elseif($statusValidasi === 'Perlu Verifikasi')
+                <span class="badge" style="cursor:pointer;background:#fffbeb;color:#b45309;border-color:#fde68a" onclick="openModal({{ $loop->index }})">Perlu Verifikasi</span>
+              @else
+                <span class="badge badge-red badge-pulse" style="cursor:pointer" onclick="openModal({{ $loop->index }})">Anomali</span>
+              @endif
             </td>
             <td>
-              @if(count($flags) > 0)
+              @if(count($displayFlags) > 0)
                 <div style="display:flex;flex-wrap:wrap">
-                  @foreach($flags as $flag)
-                  @php
-                    $lbl = match($flag){
-                      'nominal_bon_tidak_ganjil'             => 'Bon genap',
-                      'no_bon_duplikat'                      => 'Bon duplikat',
-                      'odometer_mundur'                      => 'Odo mundur',
-                      'jarak_melebihi_batas_harian'          => 'Jarak >batas',
-                      'efisiensi_terlalu_tinggi_vs_historis' => 'Eff↑',
-                      'efisiensi_terlalu_rendah_vs_historis' => 'Eff↓',
-                      'efisiensi_di_luar_batas_mutlak'       => 'Eff abnormal',
-                      default => $flag,
-                    };
-                  @endphp
-                  <span class="flag-chip">{{ $lbl }}</span>
+                  @foreach($displayFlags as $flag)
+                  <span class="flag-chip">{{ $flag }}</span>
                   @endforeach
                 </div>
               @else
@@ -653,88 +732,86 @@
   <div class="trip-cards-mobile">
     @forelse($perjalanans as $p)
     @php
-      $score2 = $p->fraud_score ?? 0;
-      $risk2  = $score2 > 50 ? 'high' : ($score2 > 30 ? 'mid' : 'safe');
-      $flags2 = $p->fraud_flags ?? [];
+      $flagsData2    = $p->fraud_flags ?? [];
+      $statusVal2    = $flagsData2['status_anomali'] ?? 'Normal';
+      $displayFlags2 = $flagsData2['display_flags'] ?? [];
+      $cardCls       = $statusVal2 === 'Anomali' ? 'is-anomali' : ($statusVal2 === 'Perlu Verifikasi' ? 'is-verifikasi' : '');
     @endphp
-    <div class="trip-card {{ $risk2 === 'high' ? 'risk-high' : ($risk2 === 'mid' ? 'risk-mid' : '') }}">
-      <div class="trip-card-top">
-        <div>
-          <div class="trip-card-name">{{ $p->pegawai->nama ?? '-' }}</div>
-          <div class="trip-card-sub">{{ $p->tanggal->format('d/m/Y') }} · {{ $p->tujuan }}</div>
+    <div class="m-card {{ $cardCls }}">
+      <div class="m-card-head">
+        <div class="m-card-user">
+          <div class="m-card-avatar">{{ strtoupper(substr($p->pegawai->nama ?? '-', 0, 1)) }}</div>
+          <div>
+            <div class="m-card-name">{{ $p->pegawai->nama ?? '-' }}</div>
+            <div class="m-card-date">{{ $p->tanggal->format('d/m/Y') }} · {{ $p->kendaraan->plat_nomor ?? '-' }}</div>
+          </div>
         </div>
-        <div class="trip-card-badges">
-          @if($p->status_efisiensi === 'balance')
-            <span class="badge badge-green">Balance</span>
-          @elseif($p->status_efisiensi === 'boros')
-            <span class="badge badge-amber">Boros</span>
-          @else
-            <span class="badge badge-red">Anomali</span>
-          @endif
-          @if($risk2 === 'high')
-            <span class="badge badge-red badge-pulse">Fraud ⛔</span>
-          @elseif($risk2 === 'mid')
-            <span class="badge badge-orange">Curiga ⚠</span>
-          @endif
-        </div>
-      </div>
-      <div class="trip-card-grid">
-        <div class="trip-card-field">
-          <span>Kendaraan</span>
-          <span>{{ $p->kendaraan->tipe ?? '-' }} — {{ $p->kendaraan->nomor_polisi ?? $p->kendaraan->plat_nomor ?? '-' }}</span>
-        </div>
-        <div class="trip-card-field">
-          <span>Jarak</span>
-          <span style="font-family:'JetBrains Mono',monospace">{{ number_format($p->jarak, 0, ',', '.') }} km</span>
-        </div>
-        <div class="trip-card-field">
-          <span>Volume</span>
-          <span style="font-family:'JetBrains Mono',monospace">{{ number_format($p->vol_liter, 2, ',', '.') }} L</span>
-        </div>
-        <div class="trip-card-field">
-          <span>Efisiensi</span>
-          <span style="font-family:'JetBrains Mono',monospace">{{ number_format($p->efisiensi, 2, ',', '.') }} km/L</span>
-        </div>
-        <div class="trip-card-field">
-          <span>Biaya BBM</span>
-          <span style="font-family:'JetBrains Mono',monospace">Rp {{ number_format($p->jumlah_biaya, 0, ',', '.') }}</span>
-        </div>
-        <div class="trip-card-field">
-          <span>No Bon</span>
-          <span style="font-family:'JetBrains Mono',monospace;color:#6b7280">{{ $p->no_bon ?? '—' }}</span>
+        <div class="m-card-badges">
+          @php
+            $valBadge = match($statusVal2) {
+              'Anomali' => '<span class="badge badge-red">Anomali</span>',
+              'Perlu Verifikasi' => '<span class="badge badge-amber">Perlu Verifikasi</span>',
+              default => '<span class="badge badge-green">Normal</span>',
+            };
+            $efBadge = match($p->status_efisiensi) {
+              'balance' => '<span class="badge badge-green">Balance</span>',
+              'boros' => '<span class="badge badge-amber">Boros</span>',
+              default => '<span class="badge badge-red">Anomali</span>',
+            };
+          @endphp
+          {!! $valBadge !!}
         </div>
       </div>
-      @if(count($flags2) > 0)
-      <div class="trip-card-flags">
-        @foreach($flags2 as $flag)
-        @php
-          $lbl2 = match($flag){
-            'nominal_bon_tidak_ganjil'             => 'Bon genap',
-            'no_bon_duplikat'                      => 'Bon duplikat',
-            'odometer_mundur'                      => 'Odo mundur',
-            'jarak_melebihi_batas_harian'          => 'Jarak >batas',
-            'efisiensi_terlalu_tinggi_vs_historis' => 'Eff↑',
-            'efisiensi_terlalu_rendah_vs_historis' => 'Eff↓',
-            'efisiensi_di_luar_batas_mutlak'       => 'Eff abnormal',
-            default => $flag,
-          };
-        @endphp
-        <span class="flag-chip">{{ $lbl2 }}</span>
-        @endforeach
+      <div class="m-card-body">
+        <div class="m-card-row">
+          <div class="m-card-field">
+            <span class="m-card-label">Tujuan</span>
+            <span class="m-card-value">{{ $p->tujuan }}</span>
+          </div>
+          <div class="m-card-field m-card-num">
+            <span class="m-card-label">Jarak</span>
+            <span class="m-card-value">{{ number_format($p->jarak, 0, ',', '.') }} km</span>
+          </div>
+        </div>
+        <div class="m-card-row">
+          <div class="m-card-field">
+            <span class="m-card-label">Volume</span>
+            <span class="m-card-value">{{ number_format($p->vol_liter, 2, ',', '.') }} L</span>
+          </div>
+          <div class="m-card-field m-card-num">
+            <span class="m-card-label">Efisiensi</span>
+            <span class="m-card-value">{!! $efBadge !!}</span>
+          </div>
+        </div>
+        <div class="m-card-row">
+          <div class="m-card-field">
+            <span class="m-card-label">Biaya</span>
+            <span class="m-card-value" style="font-weight:700">Rp {{ number_format($p->jumlah_biaya, 0, ',', '.') }}</span>
+          </div>
+          <div class="m-card-field m-card-num">
+            <span class="m-card-label">KM</span>
+            <span class="m-card-value" style="font-size:11px">{{ number_format($p->km_lama, 0, ',', '.') }} → {{ number_format($p->km_baru, 0, ',', '.') }}</span>
+          </div>
+        </div>
+        @if(count($displayFlags2) > 0)
+        <div class="m-card-flags">
+          @foreach($displayFlags2 as $flag)
+          <span class="flag-chip">{{ $flag }}</span>
+          @endforeach
+        </div>
+        @endif
       </div>
-      @endif
-      <div class="trip-card-actions">
-        <a href="{{ route('perjalanan.edit', $p->id) }}" class="btn-edit">Edit</a>
+      <div class="m-card-actions">
+        <a href="{{ route('perjalanan.edit', $p->id) }}" class="m-btn m-btn-edit">Edit</a>
         <form action="{{ route('perjalanan.destroy', $p->id) }}" method="POST" style="flex:1;display:flex">
           @csrf
           @method('DELETE')
-          <button type="submit" onclick="return confirm('Yakin hapus?')" class="btn-del" style="flex:1">
-            Hapus
-          </button>
+          <button type="submit" onclick="return confirm('Yakin hapus?')" class="m-btn m-btn-del">Hapus</button>
         </form>
         @if($p->foto_bon)
-          <a href="{{ asset('storage/' . $p->foto_bon) }}" target="_blank" class="btn-photo">Foto ↗</a>
+          <a href="{{ asset('storage/' . $p->foto_bon) }}" target="_blank" class="m-btn m-btn-photo">Foto</a>
         @endif
+        <a href="javascript:void(0)" class="m-btn m-btn-detail" onclick="openModal({{ $loop->index }})">Detail</a>
       </div>
     </div>
     @empty
@@ -743,6 +820,25 @@
     </div>
     @endforelse
   </div>
+
+{{-- ── Floating Add Button (Mobile) ── --}}
+<a href="{{ route('perjalanan.create') }}" class="m-fab" aria-label="Tambah perjalanan">
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+  </svg>
+</a>
+
+{{-- ── Modal Detail Pembuktian ── --}}
+<div id="validasiModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Detail Pembuktian</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="validasiModalBody">
+    </div>
+  </div>
+</div>
 
 </div>{{-- end .main-content --}}
 @endsection
@@ -753,6 +849,125 @@
      ============================================================ --}}
 @push('scripts')
 <script>
+const perjalananData = @json($perjalananJson->values());
+
+function openModal(index) {
+    const d = perjalananData[index];
+    if (!d) return;
+
+    const isAnomali = d.status_validasi === 'Anomali';
+    const isPerluVerifikasi = d.status_validasi === 'Perlu Verifikasi';
+    let statusBadge;
+    if (isAnomali) {
+        statusBadge = '<span class="badge badge-red">Anomali</span>';
+    } else if (isPerluVerifikasi) {
+        statusBadge = '<span class="badge" style="background:#fffbeb;color:#b45309;border-color:#fde68a">Perlu Verifikasi</span>';
+    } else {
+        statusBadge = '<span class="badge badge-green">Normal</span>';
+    }
+
+    let efisiensiBadge;
+    if (d.status_efisiensi === 'Balance') {
+        efisiensiBadge = '<span class="badge badge-green">Balance</span>';
+    } else if (d.status_efisiensi === 'Boros') {
+        efisiensiBadge = '<span class="badge badge-amber">Boros</span>';
+    } else {
+        efisiensiBadge = '<span class="badge badge-red">Anomali</span>';
+    }
+
+    let timelineHtml = `<span>${d.timeline_status}</span>`;
+    if (d.alasan_timeline) {
+        timelineHtml += `<p style="margin:4px 0 0;font-size:11px;color:#6b7280">${d.alasan_timeline}</p>`;
+    }
+
+    let flagsHtml = '';
+    if (d.display_flags && d.display_flags.length > 0) {
+        flagsHtml = d.display_flags.map(f => `<span class="flag-chip">${f}</span>`).join(' ');
+    } else {
+        flagsHtml = '<span class="muted">—</span>';
+    }
+
+    document.getElementById('validasiModalBody').innerHTML = `
+        <div class="detail-grid">
+            <div class="detail-field">
+                <span class="label">Tanggal</span>
+                <span class="value mono">${d.tanggal}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Pegawai</span>
+                <span class="value">${d.pegawai}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Nomor Polisi</span>
+                <span class="value mono">${d.no_polisi}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Tujuan</span>
+                <span class="value">${d.tujuan}</span>
+            </div>
+            <div class="detail-field detail-full">
+                <span class="label">Uraian</span>
+                <span class="value">${d.uraian}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">KM Lama</span>
+                <span class="value mono">${d.km_lama}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">KM Baru</span>
+                <span class="value mono">${d.km_baru}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Jarak Aktual</span>
+                <span class="value mono">${d.jarak_aktual}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Volume BBM</span>
+                <span class="value mono">${d.volume_bbm}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Efisiensi</span>
+                <span class="value">${d.efisiensi} ${efisiensiBadge}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Nilai Sewajarnya</span>
+                <span class="value mono">${d.nilai_sewajarnya}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Deviasi</span>
+                <span class="value mono">${d.deviasi}</span>
+            </div>
+            <div class="detail-field detail-full">
+                <span class="label">Timeline Kendaraan</span>
+                <div class="value">${timelineHtml}</div>
+            </div>
+            <div class="detail-field">
+                <span class="label">Status Validasi</span>
+                <span class="value">${statusBadge}</span>
+            </div>
+            <div class="detail-field">
+                <span class="label">Flag</span>
+                <div class="value">${flagsHtml}</div>
+            </div>
+        </div>
+        <div class="detail-keterangan">
+            <span class="label">Alasan / Pembuktian</span>
+            <div class="value">${d.alasan}</div>
+        </div>
+    `;
+    document.getElementById('validasiModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    document.getElementById('validasiModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
+
 (function () {
   'use strict';
 
@@ -782,19 +997,6 @@
     });
   }, { threshold: 0.2 });
   document.querySelectorAll('.stat-card').forEach(c => statObs.observe(c));
-
-  /* ── RISK BAR ANIMATION ── */
-  const barObs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (!e.isIntersecting) return;
-      const fill = e.target;
-      const w    = fill.style.width;
-      fill.style.width = '0%';
-      setTimeout(() => { fill.style.width = w; }, 200);
-      barObs.unobserve(fill);
-    });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.risk-bar-fill').forEach(b => barObs.observe(b));
 
 })();
 </script>

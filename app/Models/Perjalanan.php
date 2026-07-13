@@ -1,5 +1,4 @@
 <?php
-// app/Models/Perjalanan.php
 
 namespace App\Models;
 
@@ -38,22 +37,23 @@ class Perjalanan extends Model
     }
 
     // =========================================================
-    // HELPER — Kalkulasi Turunan
-    // Dipanggil di Controller agar store() dan update() identik.
+    // SCOPES — Urutan berdasarkan timeline kendaraan
     // =========================================================
 
-    /**
-     * Hitung jarak dari selisih odometer.
-     */
+    public function scopeOrderByVehicleTimeline($query)
+    {
+        return $query->orderBy('kendaraan_id')->orderBy('km_baru');
+    }
+
+    // =========================================================
+    // HELPERS — Kalkulasi Turunan
+    // =========================================================
+
     public static function hitungJarak(float $kmLama, float $kmBaru): float
     {
         return max(0.0, round($kmBaru - $kmLama, 2));
     }
 
-    /**
-     * Hitung volume BBM yang dibeli (liter) dari total biaya dan harga per liter.
-     * Mengembalikan 0 jika harga_per_liter nol untuk menghindari division-by-zero.
-     */
     public static function hitungVolumeLiter(float $jumlahBiaya, float $hargaPerLiter): float
     {
         if ($hargaPerLiter <= 0) {
@@ -63,10 +63,6 @@ class Perjalanan extends Model
         return round($jumlahBiaya / $hargaPerLiter, 2);
     }
 
-    /**
-     * Hitung efisiensi BBM (km/liter).
-     * Mengembalikan 0 jika volume nol.
-     */
     public static function hitungEfisiensi(float $jarak, float $volLiter): float
     {
         if ($volLiter <= 0) {
@@ -76,64 +72,42 @@ class Perjalanan extends Model
         return round($jarak / $volLiter, 2);
     }
 
-    /**
-     * Buat penjelasan naratif untuk status efisiensi kendaraan.
-     * Disimpan di kolom status_reason agar audit trail lebih informatif.
-     *
-     * @param  float  $efisiensi  Nilai efisiensi km/liter
-     * @param  string $tipe       Tipe kendaraan: 'R2' | 'R4'
-     * @param  string $status     Hasil tentukanStatus()
-     * @param  float|null $avgHistoris Rata-rata historis kendaraan (opsional)
-     */
     public static function generateStatusReason(
-        float   $efisiensi,
-        string  $tipe,
-        string  $status,
-        ?float  $avgHistoris = null
+        float  $efisiensi,
+        string $tipe,
+        string $status,
+        ?string $bbm = null
     ): string {
-        $b    = static::getBatasEfisiensi($tipe);
+        $b    = static::getBatasEfisiensi($tipe, $bbm);
         $unit = 'km/liter';
-
-        $historisInfo = $avgHistoris !== null
-            ? sprintf(' (rata-rata historis kendaraan: %.1f %s)', $avgHistoris, $unit)
-            : '';
+        $bbmLabel = $bbm ? strtoupper($bbm) : ($tipe === 'R2' ? 'BENSIN' : 'BENSIN');
 
         return match ($status) {
             'balance' => sprintf(
-                'Efisiensi %.2f %s tergolong normal (batas normal ≥ %.0f %s untuk %s)%s.',
-                $efisiensi, $unit, $b['balance'], $unit, $tipe, $historisInfo
+                'Efisiensi %.2f %s tergolong normal untuk %s %s (batas ≥ %.0f %s).',
+                $efisiensi, $unit, $tipe, $bbmLabel, $b['balance'], $unit
             ),
             'boros' => sprintf(
-                'Efisiensi %.2f %s di bawah normal (batas normal %.0f %s, batas boros %.0f %s untuk %s)%s. Konsumsi BBM lebih tinggi dari standar.',
-                $efisiensi, $unit, $b['balance'], $unit, $b['boros'], $unit, $tipe, $historisInfo
+                'Efisiensi %.2f %s di bawah normal untuk %s %s (batas normal %.0f %s). Konsumsi BBM lebih tinggi dari standar.',
+                $efisiensi, $unit, $tipe, $bbmLabel, $b['balance'], $unit
             ),
             'anomali' => $efisiensi > $b['anomali_atas']
                 ? sprintf(
-                    'Efisiensi %.2f %s melebihi batas atas anomali (%.0f %s untuk %s)%s. Diduga manipulasi data atau kesalahan input.',
-                    $efisiensi, $unit, $b['anomali_atas'], $unit, $tipe, $historisInfo
+                    'Efisiensi %.2f %s melebihi batas atas anomali (%.0f %s untuk %s %s). Perlu verifikasi data.',
+                    $efisiensi, $unit, $b['anomali_atas'], $unit, $tipe, $bbmLabel
                 )
                 : sprintf(
-                    'Efisiensi %.2f %s di bawah batas minimum (%.0f %s untuk %s)%s. Konsumsi BBM sangat tidak wajar.',
-                    $efisiensi, $unit, $b['anomali_bawah'], $unit, $tipe, $historisInfo
+                    'Efisiensi %.2f %s di bawah batas minimum untuk %s %s (%.0f %s). Konsumsi BBM tidak wajar.',
+                    $efisiensi, $unit, $tipe, $bbmLabel, $b['anomali_bawah'], $unit
                 ),
             default => sprintf('Efisiensi %.2f %s tidak dapat dikategorikan.', $efisiensi, $unit),
         };
     }
 
     // =========================================================
-    // LAYER 1 — Validasi Bon
+    // VALIDASI BON
     // =========================================================
 
-    /**
-     * Aturan bon lapangan: nominal harus kelipatan Rp1.000,
-     * tetapi BUKAN kelipatan bulat Rp10.000.
-     *
-     * Contoh VALID    : 51.000, 52.000, 53.000, 127.000, 101.000
-     * Contoh TIDAK VALID: 10.000, 20.000, 30.000, 50.000, 100.000
-     *
-     * Catatan implementasi: konversi ke integer sebelum fmod()
-     * untuk menghindari floating-point precision error.
-     */
     public static function isNominalGanjil(float $jumlah): bool
     {
         $jumlahInt = (int) round($jumlah);
@@ -145,10 +119,6 @@ class Perjalanan extends Model
         return $jumlahInt % 10000 !== 0;
     }
 
-    /**
-     * Cek duplikasi no_bon untuk kendaraan yang sama.
-     * Bon yang sama tidak mungkin dipakai dua kali pada kendaraan yang sama.
-     */
     public static function isDuplicateBon(string $noBon, int $kendaraanId, ?int $excludeId = null): bool
     {
         return static::where('no_bon', $noBon)
@@ -157,34 +127,36 @@ class Perjalanan extends Model
             ->exists();
     }
 
+    public static function isDuplicateRecord(
+        string $tanggal,
+        int $kendaraanId,
+        float $kmLama,
+        float $kmBaru,
+        float $volLiter,
+        ?int $excludeId = null
+    ): bool {
+        return static::whereDate('tanggal', $tanggal)
+            ->where('kendaraan_id', $kendaraanId)
+            ->where('km_lama', $kmLama)
+            ->where('km_baru', $kmBaru)
+            ->where('vol_liter', $volLiter)
+            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+            ->exists();
+    }
+
     // =========================================================
-    // LAYER 2 — Validasi Odometer
+    // VALIDASI ODOMETER & HISTORI KENDARAAN
     // =========================================================
 
-    /**
-     * Ambil odometer terakhir tercatat untuk kendaraan ini.
-     *
-     * Catatan: fungsi ini TIDAK lagi dipakai sebagai syarat validasi penyimpanan.
-     * Admin menginput data berdasarkan bon BBM yang diterima tanpa mengetahui
-     * urutan perjalanan dalam satu hari, sehingga urutan input tidak mencerminkan
-     * urutan kronologis perjalanan kendaraan.
-     *
-     * Fungsi ini dipertahankan untuk keperluan informatif di halaman create
-     * (menampilkan referensi KM terakhir tercatat kepada admin).
-     */
     public static function getOdometerTerakhir(int $kendaraanId, ?int $excludeId = null): ?float
     {
         return static::where('kendaraan_id', $kendaraanId)
             ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
-            ->orderByDesc('tanggal')
+            ->orderBy('km_baru')
             ->orderByDesc('id')
             ->value('km_baru');
     }
 
-    /**
-     * Deteksi jarak tidak wajar berdasarkan rentang tanggal.
-     * Default: max 600 km/hari untuk R4, 200 km/hari untuk R2.
-     */
     public static function isJarakWajar(
         float   $jarak,
         string  $tipe,
@@ -203,161 +175,202 @@ class Perjalanan extends Model
     }
 
     // =========================================================
-    // LAYER 3 — Analisis Efisiensi Statistik
+    // VALIDASI TIMELINE KENDARAAN
     // =========================================================
 
     /**
-     * Ambil rata-rata dan standar deviasi efisiensi historis kendaraan ini.
-     * Hanya dari data yang statusnya bukan anomali (data bersih).
-     */
-    public static function getStatistikEfisiensi(int $kendaraanId, ?int $excludeId = null): array
-    {
-        $data = static::where('kendaraan_id', $kendaraanId)
-            ->where('status_efisiensi', '!=', 'anomali')
-            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
-            ->pluck('efisiensi');
-
-        if ($data->count() < 3) {
-            return ['avg' => null, 'std' => null, 'count' => $data->count()];
-        }
-
-        $avg      = $data->avg();
-        $variance = $data->map(fn($e) => pow($e - $avg, 2))->avg();
-        $std      = sqrt($variance);
-
-        return ['avg' => $avg, 'std' => $std, 'count' => $data->count()];
-    }
-
-    /**
-     * Deteksi outlier efisiensi menggunakan Z-score.
-     * Jika efisiensi menyimpang lebih dari 2 standar deviasi dari rata-rata
-     * historis kendaraan, ini mencurigakan.
-     */
-    public static function hitungZScore(float $efisiensi, array $statistik): ?float
-    {
-        if ($statistik['avg'] === null || $statistik['std'] == 0) {
-            return null;
-        }
-
-        return ($efisiensi - $statistik['avg']) / $statistik['std'];
-    }
-
-    // =========================================================
-    // FRAUD SCORE — Akumulasi semua flag
-    // =========================================================
-
-    /**
-     * Jalankan semua pemeriksaan, kumpulkan flag, hitung skor.
-     * Skor 0 = bersih, semakin tinggi semakin mencurigakan.
+     * Validasi apakah posisi data ini logis dalam timeline kendaraan.
      *
-     * Skor per flag:
-     *   +30  Nominal bon kelipatan bulat Rp10.000
-     *   +40  No bon duplikat
-     *   +25  Jarak hari ini melebihi batas wajar
-     *   +35  Efisiensi outlier ke atas (z > +2, terlalu hemat → mencurigakan)
-     *   +20  Efisiensi outlier ke bawah (z < -2, sangat boros)
-     *   +15  Efisiensi di luar batas mutlak tipe kendaraan
+     * Mengembalikan: ['status' => 'Logis'|'Perlu Verifikasi'|'Tidak Logis', 'alasan' => string|null]
      *
-     * Catatan: flag 'odometer_mundur' (+50) telah dihapus karena tidak sesuai
-     * proses bisnis. Admin menginput bon tanpa mengetahui urutan perjalanan
-     * dalam satu hari, sehingga perbandingan KM Awal terhadap KM terakhir
-     * di database menghasilkan false positive yang tinggi.
-     *
-     * @param  array    $data       Wajib: kendaraan_id, jumlah_biaya, no_bon,
-     *                              km_lama, km_baru, tanggal, jarak, efisiensi
-     * @param  ?int     $excludeId  ID record yang sedang di-update (hindari self-compare)
+     * Timeline dianggap logis jika:
+     * 1. km_lama >= km_baru_terakhir tercatat (odometer tidak mundur dari data terakhir)
+     * 2. Tidak ada lompatan jarak yang tidak wajar antar perjalanan
      */
-    public static function hitungFraudScore(array $data, ?int $excludeId = null): array
-    {
-        $flags = [];
-        $score = 0;
-
-        $kendaraan = Kendaraan::find($data['kendaraan_id']);
-        $tipe      = $kendaraan->jenis ?? 'R4';
-
-        // --- Layer 1: Bon ---
-        if (!static::isNominalGanjil((float) $data['jumlah_biaya'])) {
-            $flags[] = 'nominal_bon_tidak_ganjil';
-            $score  += 30;
+    public static function validasiTimeline(
+        float   $kmLama,
+        float   $kmBaru,
+        int     $kendaraanId,
+        ?int    $excludeId = null,
+        ?string $tanggal   = null
+    ): array {
+        if ($tanggal === null) {
+            return ['status' => 'Logis', 'alasan' => null];
         }
 
-        if (!empty($data['no_bon']) && static::isDuplicateBon($data['no_bon'], $data['kendaraan_id'], $excludeId)) {
-            $flags[] = 'no_bon_duplikat';
-            $score  += 40;
+        $riwayat = static::where('kendaraan_id', $kendaraanId)
+            ->where(function ($q) use ($tanggal, $excludeId) {
+                $q->where('tanggal', '<', $tanggal);
+                if ($excludeId) {
+                    $q->orWhere(function ($q2) use ($tanggal, $excludeId) {
+                        $q2->where('tanggal', '=', $tanggal)
+                           ->where('id', '<', $excludeId);
+                    });
+                } else {
+                    $q->orWhere('tanggal', '=', $tanggal);
+                }
+            })
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('id', 'asc')
+            ->get(['km_lama', 'km_baru', 'jarak', 'tanggal', 'id']);
+
+        if ($riwayat->isEmpty()) {
+            return ['status' => 'Logis', 'alasan' => null];
         }
 
-        // --- Layer 2: Jarak harian ---
-        // Catatan: validasi odometer_mundur dihapus — lihat docblock hitungFraudScore().
-        if (!static::isJarakWajar((float) $data['jarak'], $tipe, $data['tanggal'], $data['kendaraan_id'], $excludeId)) {
-            $flags[] = 'jarak_melebihi_batas_harian';
-            $score  += 25;
+        $kmBaruTerakhir = $riwayat->last()->km_baru;
+
+        if ($kmLama > $kmBaruTerakhir) {
+            $selisih = round($kmLama - $kmBaruTerakhir, 0);
+            return [
+                'status' => 'Perlu Verifikasi',
+                'alasan' => "Terdapat loncatan odometer sebesar {$selisih} km dari pencatatan terakhir ({$kmBaruTerakhir}) ke KM awal baru ({$kmLama}). Histori kendaraan perlu diverifikasi.",
+            ];
         }
 
-        // --- Layer 3: Efisiensi ---
-        $efisiensi = (float) $data['efisiensi'];
-        $batas     = static::getBatasEfisiensi($tipe);
-
-        if ($efisiensi > $batas['anomali_atas'] || $efisiensi < $batas['anomali_bawah']) {
-            $flags[] = 'efisiensi_di_luar_batas_mutlak';
-            $score  += 15;
+        if ($kmLama < $kmBaruTerakhir) {
+            $selisih = round($kmBaruTerakhir - $kmLama, 0);
+            return [
+                'status' => 'Tidak Logis',
+                'alasan' => "KM awal ({$kmLama}) lebih rendah dari KM akhir pencatatan sebelumnya ({$kmBaruTerakhir}). Odometer tidak dapat mundur. Histori kendaraan perlu diverifikasi.",
+            ];
         }
 
-        $statistik = static::getStatistikEfisiensi($data['kendaraan_id'], $excludeId);
-        $z         = static::hitungZScore($efisiensi, $statistik);
+        if ($kmLama == $kmBaruTerakhir) {
+            // KM lanjutan (berurutan) — logis
+            $sebelumnya = $riwayat->last();
 
-        if ($z !== null) {
-            if ($z > 2.0) {
-                $flags[] = 'efisiensi_terlalu_tinggi_vs_historis';
-                $score  += 35;
-            } elseif ($z < -2.0) {
-                $flags[] = 'efisiensi_terlalu_rendah_vs_historis';
-                $score  += 20;
+            if ($sebelumnya->jarak > 0 && $sebelumnya->km_baru == $kmLama) {
+                return ['status' => 'Logis', 'alasan' => null];
             }
         }
 
+        $totalJarakRiwayat = $riwayat->sum('jarak');
+        $rataJarak = $riwayat->count() > 0 ? $totalJarakRiwayat / $riwayat->count() : 0;
+
+        $jarakBaru = max(0.0, $kmBaru - $kmLama);
+        if ($rataJarak > 0 && $jarakBaru > $rataJarak * 3) {
+            return [
+                'status' => 'Perlu Verifikasi',
+                'alasan' => "Jarak tempuh ({$jarakBaru} km) jauh di atas rata-rata perjalanan kendaraan ini ({$rataJarak} km). Histori perlu diverifikasi.",
+            ];
+        }
+
+        return ['status' => 'Logis', 'alasan' => null];
+    }
+
+    // =========================================================
+    // INFER BBM
+    // =========================================================
+
+    public static function inferBBM(float $hargaPerLiter): string
+    {
+        if ($hargaPerLiter <= 7500)  return 'solar';
+        if ($hargaPerLiter <= 10500) return 'pertalite';
+        if ($hargaPerLiter <= 13500) return 'pertamax';
+        if ($hargaPerLiter <= 14500) return 'pertamax_turbo';
+        return 'pertamina_dex';
+    }
+
+    // =========================================================
+    // INDIKASI VERIFIKASI — Menggantikan fraud score
+    // Mengumpulkan indikasi yang membuat transaksi perlu diverifikasi
+    // =========================================================
+
+    /**
+     * Kumpulkan semua indikasi yang membuat data perlu diverifikasi.
+     * Sistem TIDAK menyimpulkan kecurangan — hanya memberikan indikasi.
+     *
+     * Setiap indikasi memiliki bobot. Makin banyak indikasi, makin tinggi
+     * tingkat verifikasi yang diperlukan.
+     *
+     * @param  array    $data       Wajib: kendaraan_id, jumlah_biaya, no_bon,
+     *                              km_lama, km_baru, tanggal, jarak, efisiensi,
+     *                              harga_per_liter
+     * @param  ?int     $excludeId  ID record yang sedang di-update
+     */
+    public static function hitungIndikasiVerifikasi(array $data, ?int $excludeId = null, ?string $tipe = null): array
+    {
+        $indikasi = [];
+        $totalBobot = 0;
+
+        if ($tipe === null) {
+            $kendaraan = Kendaraan::find($data['kendaraan_id']);
+            $tipe = $kendaraan->jenis ?? 'R4';
+        }
+        $bbm = static::inferBBM((float) ($data['harga_per_liter'] ?? 0));
+
+        // --- Indikasi 1: Nominal bon ---
+        if (!static::isNominalGanjil((float) $data['jumlah_biaya'])) {
+            $indikasi[] = 'nominal_bon_kelipatan_bulat';
+            $totalBobot  += 30;
+        }
+
+        // --- Indikasi 2: No bon duplikat ---
+        if (!empty($data['no_bon']) && static::isDuplicateBon($data['no_bon'], $data['kendaraan_id'], $excludeId)) {
+            $indikasi[] = 'no_bon_duplikat';
+            $totalBobot  += 40;
+        }
+
+        // --- Indikasi 3: Jarak harian melebihi batas ---
+        if (!static::isJarakWajar((float) $data['jarak'], $tipe, $data['tanggal'], $data['kendaraan_id'], $excludeId)) {
+            $indikasi[] = 'jarak_melebihi_batas_harian';
+            $totalBobot  += 25;
+        }
+
+        // --- Indikasi 4: Harga tidak wajar ---
+        $hargaPerLiter = (float) ($data['harga_per_liter'] ?? 0);
+        if ($hargaPerLiter > 0 && ($hargaPerLiter < 6000 || $hargaPerLiter > 20000)) {
+            $indikasi[] = 'harga_tidak_wajar';
+            $totalBobot  += 20;
+        }
+
+        // --- Indikasi 5: Efisiensi di luar batas ---
+        $efisiensi = (float) $data['efisiensi'];
+        $batas     = static::getBatasEfisiensi($tipe, $bbm);
+
+        if ($efisiensi > $batas['anomali_atas'] || $efisiensi < $batas['anomali_bawah']) {
+            $indikasi[] = 'efisiensi_di_luar_batas_mutlak';
+            $totalBobot  += 15;
+        }
+
         return [
-            'score' => $score,
-            'flags' => $flags,
-            'risk'  => static::interpretRisk($score),
+            'total_bobot' => $totalBobot,
+            'indikasi'    => $indikasi,
+            'tingkat'     => static::interpretasiTingkatVerifikasi($totalBobot),
         ];
     }
 
-    // =========================================================
-    // HELPER — Klasifikasi & Batas
-    // =========================================================
-
-    public static function interpretRisk(int $score): string
+    public static function interpretasiTingkatVerifikasi(int $bobot): string
     {
         return match (true) {
-            $score === 0  => 'aman',
-            $score <= 20  => 'perhatian',
-            $score <= 50  => 'mencurigakan',
-            default       => 'tinggi',
+            $bobot === 0 => 'Normal',
+            $bobot <= 20 => 'Perhatian',
+            $bobot <= 50 => 'Perlu Verifikasi',
+            default      => 'Anomali',
         };
     }
 
-    /**
-     * Batas efisiensi per tipe kendaraan (km/liter).
-     *
-     * R2 (motor): anomali_atas=60, balance=25, boros=10, anomali_bawah=3
-     * R4 (mobil): anomali_atas=20, balance=10, boros=5,  anomali_bawah=2
-     */
-    public static function getBatasEfisiensi(string $tipe): array
+    // =========================================================
+    // KLASIFIKASI & BATAS EFISIENSI
+    // =========================================================
+
+    public static function getBatasEfisiensi(string $tipe, ?string $bbm = null): array
     {
-        return $tipe === 'R2'
-            ? ['anomali_atas' => 60, 'balance' => 25, 'boros' => 10, 'anomali_bawah' => 3]
-            : ['anomali_atas' => 20, 'balance' => 10, 'boros' => 5,  'anomali_bawah' => 2];
+        if ($tipe === 'R2') {
+            return ['anomali_atas' => 60, 'balance' => 25, 'boros' => 10, 'anomali_bawah' => 3];
+        }
+
+        if (in_array($bbm, ['solar', 'pertamina_dex'])) {
+            return ['anomali_atas' => 14, 'balance' => 6, 'boros' => 3, 'anomali_bawah' => 1.5];
+        }
+
+        return ['anomali_atas' => 20, 'balance' => 10, 'boros' => 5,  'anomali_bawah' => 2];
     }
 
-    /**
-     * Tentukan status efisiensi berdasarkan nilai dan tipe kendaraan.
-     *
-     * Urutan pengecekan penting: anomali diperiksa dulu (batas absolut),
-     * baru balance dan boros di range normal.
-     */
-    public static function tentukanStatus(float $efisiensi, string $tipe = 'R4'): string
+    public static function tentukanStatus(float $efisiensi, string $tipe = 'R4', ?string $bbm = null): string
     {
-        $b = static::getBatasEfisiensi($tipe);
+        $b = static::getBatasEfisiensi($tipe, $bbm);
 
         if ($efisiensi > $b['anomali_atas'] || $efisiensi < $b['anomali_bawah']) {
             return 'anomali';
@@ -371,7 +384,128 @@ class Perjalanan extends Model
             return 'boros';
         }
 
-        // Nilai antara anomali_bawah dan boros — masuk kategori anomali bawah
         return 'anomali';
+    }
+
+    // =========================================================
+    // DETEKSI ANOMALI — Single Source of Truth
+    // =========================================================
+
+    private const TOLERANCE_RATIO = 0.4;
+
+    /**
+     * Hitung seluruh nilai anomali: hasil_sewajarnya, deviasi, status_anomali, keterangan_anomali.
+     *
+     * Nilai Sewajarnya = volume * balance_threshold (estimasi jarak yang seharusnya bisa ditempuh)
+     * Deviasi = |nilai_sewajarnya - jarak_aktual|
+     * Toleransi = 40% dari max(nilai_sewajarnya, 1)
+     *
+     * Status:
+     * - Normal: deviasi <= toleransi
+     * - Perlu Verifikasi: deviasi > toleransi && deviasi <= 2*toleransi
+     * - Anomali: deviasi > 2*toleransi
+     */
+    public static function hitungAnomali(
+        float  $jarak,
+        float  $volLiter,
+        float  $efisiensi,
+        string $tipe = 'R4',
+        string $bbm = 'pertalite',
+        array  $indikasi = [],
+        string $statusEfisiensi = 'balance'
+    ): array {
+        $batas = static::getBatasEfisiensi($tipe, $bbm);
+
+        $efisiensiWajar = ($batas['balance'] + $batas['anomali_atas']) / 2;
+        $nilaiSewajarnya = $volLiter > 0 ? round($volLiter * $efisiensiWajar, 2) : 0;
+
+        $deviasi = round(abs($nilaiSewajarnya - $jarak), 2);
+        $toleransi = round(self::TOLERANCE_RATIO * max($nilaiSewajarnya, 1), 2);
+
+        // Tentukan status berdasarkan rasio deviasi terhadap toleransi
+        $rasioDeviasi = $toleransi > 0 ? $deviasi / $toleransi : 0;
+        if ($rasioDeviasi <= 1.0) {
+            $status = 'Normal';
+        } elseif ($rasioDeviasi <= 2.0) {
+            $status = 'Perlu Verifikasi';
+        } else {
+            $status = 'Anomali';
+        }
+
+        $keterangan = static::generateKeteranganAnomali(
+            $jarak, $nilaiSewajarnya, $deviasi, $toleransi,
+            $status, $indikasi, $statusEfisiensi
+        );
+
+        return [
+            'hasil_sewajarnya'   => $nilaiSewajarnya,
+            'deviasi'            => $deviasi,
+            'status_anomali'     => $status,
+            'keterangan_anomali' => $keterangan,
+        ];
+    }
+
+    /**
+     * Buat kalimat keterangan singkat (satu baris) dengan bukti.
+     * Bukan hanya status — harus ada pembuktian.
+     */
+    private static function generateKeteranganAnomali(
+        float  $jarak,
+        float  $nilaiSewajarnya,
+        float  $deviasi,
+        float  $toleransi,
+        string $status,
+        array  $indikasi,
+        string $statusEfisiensi
+    ): string {
+        if ($status === 'Normal') {
+            return 'Data dalam batas normal. Tidak ditemukan indikasi yang memerlukan verifikasi.';
+        }
+
+        $alasan = [];
+
+        // Pembuktian 1: Jarak vs Nilai Sewajarnya
+        if ($jarak > $nilaiSewajarnya && $deviasi > $toleransi) {
+            $alasan[] = "Jarak tempuh ({$jarak} km) melebihi nilai sewajarnya ({$nilaiSewajarnya} km)";
+        } elseif ($jarak < $nilaiSewajarnya && $deviasi > $toleransi) {
+            $alasan[] = "Jarak tempuh ({$jarak} km) lebih rendah dari nilai sewajarnya ({$nilaiSewajarnya} km)";
+        }
+
+        // Pembuktian 2: Deviasi melebihi toleransi
+        if ($deviasi > $toleransi) {
+            $persen = round(($deviasi / max($nilaiSewajarnya, 1)) * 100, 0);
+            $alasan[] = "Selisih {$deviasi} km ({$persen}%) melebihi batas toleransi {$toleransi} km";
+        }
+
+        // Pembuktian 3: Indikasi spesifik
+        if (in_array('jarak_melebihi_batas_harian', $indikasi)) {
+            $alasan[] = 'Pemakaian BBM lebih cepat dari estimasi normal';
+        }
+
+        if (in_array('efisiensi_di_luar_batas_mutlak', $indikasi)) {
+            $alasan[] = 'Perbedaan odometer tidak wajar';
+        }
+
+        if (in_array('nominal_bon_kelipatan_bulat', $indikasi)) {
+            $alasan[] = 'Nominal bon merupakan kelipatan genap';
+        }
+
+        if (in_array('no_bon_duplikat', $indikasi)) {
+            $alasan[] = 'Nomor bon duplikat dengan transaksi sebelumnya';
+        }
+
+        if (in_array('harga_tidak_wajar', $indikasi)) {
+            $alasan[] = 'Harga per liter tidak sesuai range harga BBM';
+        }
+
+        if ($statusEfisiensi === 'anomali' && empty($alasan)) {
+            $alasan[] = 'Efisiensi BBM berada di luar batas wajar';
+        }
+
+        if (empty($alasan)) {
+            return 'Data perjalanan perlu diverifikasi lebih lanjut.';
+        }
+
+        return implode('. ', $alasan) . '.';
     }
 }

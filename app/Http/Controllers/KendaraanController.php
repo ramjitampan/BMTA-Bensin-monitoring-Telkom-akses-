@@ -37,11 +37,6 @@ class KendaraanController extends Controller
         return redirect()->route('kendaraan.index')->with('success', 'Kendaraan berhasil ditambahkan.');
     }
 
-    public function show(Kendaraan $kendaraan)
-    {
-        return view('kendaraan.show', compact('kendaraan'));
-    }
-
     public function edit(Kendaraan $kendaraan)
     {
         return view('kendaraan.edit', compact('kendaraan'));
