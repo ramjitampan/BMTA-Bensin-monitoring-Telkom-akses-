@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Perjalanan;
+use App\Services\TimelineService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,7 @@ class PerjalananResource extends JsonResource
     {
         $flags = $this->fraud_flags ?? [];
 
-        $timeline = Perjalanan::validasiTimeline(
+        $timeline = app(TimelineService::class)->validasiTimeline(
             (float) $this->km_lama,
             (float) $this->km_baru,
             (int) $this->kendaraan_id,
@@ -80,7 +81,6 @@ class PerjalananResource extends JsonResource
                 'fraud_flags' => $this->fraud_flags,
             ],
 
-            // Root-level alias untuk Flutter
             'status_validasi' => $flags['status_anomali'] ?? 'Normal',
             'nilai_sewajarnya' => (float) ($flags['hasil_sewajarnya'] ?? 0),
             'deviasi_km' => (float) ($flags['deviasi'] ?? 0),

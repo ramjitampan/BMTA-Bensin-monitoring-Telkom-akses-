@@ -314,6 +314,140 @@ flowchart LR
 
 ---
 
+## 💻 Installation
+
+### Requirements
+| Software | Version |
+|----------|---------|
+| PHP | ^8.3 |
+| Laravel | ^13.8 |
+| MySQL / MariaDB | 8.0+ / 10.5+ |
+| Composer | ^2.5 |
+| Node.js (optional) | ^18 |
+
+### Installation Steps
+```bash
+# 1. Clone repository
+git clone <repository-url> bensin-monitoring
+cd bensin-monitoring
+
+# 2. Install PHP dependencies
+composer install
+
+# 3. Copy environment file
+cp .env.example .env
+
+# 4. Generate application key
+php artisan key:generate
+
+# 5. Configure database in .env
+#    Edit DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+# 6. Run database migrations
+php artisan migrate
+
+# 7. Create storage link
+php artisan storage:link
+
+# 8. Build assets (if needed)
+npm install && npm run build
+
+# 9. Start development server
+php artisan serve
+```
+
+### Database Import
+If you have an existing database dump:
+```bash
+# Import from SQL file
+mysql -u username -p bensin_monitoring < backup.sql
+
+# Run any pending migrations
+php artisan migrate
+```
+
+### Environment Configuration
+Key environment variables in `.env`:
+```env
+APP_NAME="Sistem Monitoring BBM"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bensin_monitoring
+DB_USERNAME=root
+DB_PASSWORD=
+
+CACHE_DRIVER=file
+QUEUE_CONNECTION=database
+SESSION_DRIVER=file
+```
+
+> For production deployment, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+---
+
+## 🏗️ Project Architecture
+
+### Layer Architecture
+```
+┌─────────────────────────────────────────────────────┐
+│  Routes (web.php / api.php)                         │
+├─────────────────────────────────────────────────────┤
+│  Controllers                                        │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  Form Requests (Validation)                   │  │
+│  ├───────────────────────────────────────────────┤  │
+│  │  Service Layer (Business Logic)               │  │
+│  │  ├── PerjalananService     (Orchestrator)     │  │
+│  │  ├── DashboardService      (Cached Stats)     │  │
+│  │  ├── EfisiensiService      (Calculations)     │  │
+│  │  ├── ValidasiService       (Validation)       │  │
+│  │  ├── TimelineService       (Odometer Check)   │  │
+│  │  ├── FraudService          (Anomaly Detection)│  │
+│  │  └── AnomalyDetectionService (Realtime Scan)  │  │
+│  ├───────────────────────────────────────────────┤  │
+│  │  Models (Eloquent ORM)                        │  │
+│  ├───────────────────────────────────────────────┤  │
+│  │  Database (MySQL / MariaDB)                   │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Service Layer
+Business logic has been extracted from controllers and models into dedicated service classes:
+
+| Service | Responsibility |
+|---------|---------------|
+| `PerjalananService` | Orchestrates perjalanan CRUD, payload building, chart data, rekap |
+| `DashboardService` | Provides cached dashboard statistics |
+| `EfisiensiService` | Fuel efficiency calculations (jarak, volume, status) |
+| `ValidasiService` | Validation rules (bon duplicates, nominal checks) |
+| `TimelineService` | Odometer timeline validation |
+| `FraudService` | Anomaly detection, verification indicators |
+| `AnomalyDetectionService` | Real-time anomaly recomputation for display |
+
+### Caching
+- Dashboard statistics are cached for 5 minutes using `Cache::remember()`
+- Cache key: `dashboard_stats`
+
+### Database Indexes
+Performance indexes added on frequently queried columns:
+- `perjalanans`: `pegawai_id`, `tanggal`, `status_efisiensi`, `no_bon`, `km_baru`, `km_lama`
+- `pegawais`: `nama`
+- `kendaraans`: `plat_nomor`, `merk`
+
+### Form Request Validation
+All controller validation moved to dedicated Form Request classes:
+- `StorePerjalananRequest` / `UpdatePerjalananRequest`
+- `StoreKendaraanRequest` / `UpdateKendaraanRequest`
+- `StorePegawaiRequest` / `UpdatePegawaiRequest`
+
+---
+
 ## 👥 Struktur Pengguna Sistem
 
 ```
@@ -464,6 +598,24 @@ GET /api/perjalanan?status_validasi=Anomali
 - [ ] Dashboard Monitoring Mobile
 - [ ] Role Permission (multi-level akses pengguna)
 - [ ] Integrasi Server Perusahaan (Company Deployment)
+
+---
+
+## 🚀 Deployment
+
+For production deployment requirements (server specs, Nginx configuration, queue worker setup, security checklist), see:
+
+👉 **[DEPLOYMENT.md](DEPLOYMENT.md)**
+
+### Deployment Requirements (Summary)
+| Component | Requirement |
+|-----------|-------------|
+| Web Server | Nginx 1.20+ |
+| PHP | 8.3+ with required extensions |
+| Database | MySQL 8.0+ / MariaDB 10.5+ |
+| RAM | Minimum 2GB, recommended 4GB+ |
+| Storage | Minimum 10GB free space |
+| Queue | Database driver (optional) |
 
 ---
 

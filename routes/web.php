@@ -1,40 +1,15 @@
 <?php
 
+use App\Services\DashboardService;
 use Illuminate\Support\Facades\Route;
-use App\Models\Pegawai;
-use App\Models\Kendaraan;
-use App\Models\Perjalanan;
 
 use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PerjalananController;
 
-
-Route::get('/', function () {
-
-    $totalPegawai = Pegawai::count();
-
-    $totalKendaraan = Kendaraan::count();
-
-    $totalPerjalanan = Perjalanan::count();
-
-    $totalBBM = Perjalanan::sum('jumlah_biaya');
-
-    $totalLiter = Perjalanan::sum('vol_liter');
-
-    $rataEfisiensi = round(
-        Perjalanan::avg('efisiensi') ?? 0,
-        2
-    );
-
-    return view('welcome', compact(
-        'totalPegawai',
-        'totalKendaraan',
-        'totalPerjalanan',
-        'totalBBM',
-        'totalLiter',
-        'rataEfisiensi'
-    ));
+Route::get('/', function (DashboardService $dashboardService) {
+    $data = $dashboardService->getDashboardData();
+    return view('welcome', $data);
 });
 
 Route::resource('kendaraan', KendaraanController::class)->except(['show']);

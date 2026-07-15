@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePegawaiRequest;
+use App\Http\Requests\UpdatePegawaiRequest;
 use App\Models\Pegawai;
-use Illuminate\Http\Request;
 
 class PegawaiController extends Controller
 {
@@ -13,41 +14,29 @@ class PegawaiController extends Controller
         return view('pegawai.index', compact('pegawais'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('pegawai.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StorePegawaiRequest $request)
     {
-    Pegawai::create([
-        'nama' => $request->nama,
-        'jabatan' => $request->jabatan,
-        'divisi' => $request->divisi,
-        'no_hp' => $request->no_hp,
-    ]);
+        Pegawai::create([
+            'nama' => $request->nama,
+            'jabatan' => $request->jabatan,
+            'divisi' => $request->divisi,
+            'no_hp' => $request->no_hp,
+        ]);
 
-    return redirect()->route('pegawai.index');
+        return redirect()->route('pegawai.index');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Pegawai $pegawai)
     {
         return view('pegawai.edit', compact('pegawai'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pegawai $pegawai)
+    public function update(UpdatePegawaiRequest $request, Pegawai $pegawai)
     {
         $pegawai->update([
             'nama' => $request->nama,
@@ -59,9 +48,6 @@ class PegawaiController extends Controller
         return redirect()->route('pegawai.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Pegawai $pegawai)
     {
         $pegawai->delete();

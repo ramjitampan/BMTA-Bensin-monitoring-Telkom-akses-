@@ -7,6 +7,13 @@ use Illuminate\Support\Collection;
 
 class AnomalyDetectionService
 {
+    public function __construct(
+        private EfisiensiService $efisiensiService,
+        private ValidasiService $validasiService,
+        private TimelineService $timelineService,
+        private FraudService $fraudService
+    ) {}
+
     public function getAll(): Collection
     {
         return Perjalanan::with(['pegawai', 'kendaraan'])
@@ -60,34 +67,12 @@ class AnomalyDetectionService
             });
     }
 
-    private function resolveDisplayFlags(array $indikasi, string $timelineStatus): array
-    {
-        $flags = [];
-        foreach ($indikasi as $code) {
-            $flags[] = match ($code) {
-                'no_bon_duplikat'            => 'Bon Duplikat',
-                'harga_tidak_wajar'          => 'Harga Tidak Wajar',
-                'nominal_bon_kelipatan_bulat' => 'Harga Tidak Wajar',
-                'jarak_melebihi_batas_harian' => 'Volume Tidak Wajar',
-                'efisiensi_di_luar_batas_mutlak' => 'Volume Tidak Wajar',
-                default                      => '',
-            };
-        }
-        if (in_array($timelineStatus, ['Tidak Logis'])) {
-            $flags[] = 'Timeline Tidak Logis';
-        }
-        if (in_array($timelineStatus, ['Perlu Verifikasi'])) {
-            $flags[] = 'Odometer Mundur';
-        }
-        return array_values(array_unique(array_filter($flags)));
-    }
-
     private function computeOnTheFly(Perjalanan $p): array
     {
         $tipe = $p->kendaraan->jenis ?? 'R4';
-        $bbm       = Perjalanan::inferBBM((float) $p->harga_per_liter);
+        $bbm       = $this->efisiensiService->inferBBM((float) $p->harga_per_liter);
 
-        $verifikasiResult = Perjalanan::hitungIndikasiVerifikasi([
+        $verifikasiResult = $this->fraudService->hitungIndikasiVerifikasi([
             'kendaraan_id'    => $p->kendaraan_id,
             'jumlah_biaya'    => $p->jumlah_biaya,
             'no_bon'          => $p->no_bon,
@@ -99,7 +84,7 @@ class AnomalyDetectionService
             'harga_per_liter' => $p->harga_per_liter,
         ], $p->id, $tipe);
 
-        $anomaliResult = Perjalanan::hitungAnomali(
+        $anomaliResult = $this->fraudService->hitungAnomali(
             (float) $p->jarak,
             (float) $p->vol_liter,
             (float) $p->efisiensi,
@@ -109,7 +94,7 @@ class AnomalyDetectionService
             $p->status_efisiensi ?? 'balance',
         );
 
-        $timeline = Perjalanan::validasiTimeline(
+        $timeline = $this->timelineService->validasiTimeline(
             (float) $p->km_lama,
             (float) $p->km_baru,
             (int) $p->kendaraan_id,
@@ -123,7 +108,7 @@ class AnomalyDetectionService
             'Anomali'          => ($p->status_efisiensi === 'balance') ? 50 : 90,
             default => ($p->status_efisiensi === 'anomali') ? 50 : 10,
         };
-        $displayFlags = $this->resolveDisplayFlags(
+        $displayFlags = $this->fraudService->resolveDisplayFlags(
             $verifikasiResult['indikasi'],
             $timeline['status'] ?? 'Logis'
         );
