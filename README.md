@@ -51,10 +51,10 @@ Aplikasi dirancang untuk **menggantikan proses pencatatan manual** sehingga data
 
 Seiring perkembangan proyek, aplikasi kini telah mendukung cakupan yang lebih luas, meliputi:
 
-- 📊 **Operational Monitoring** — pencatatan dan pemantauan penggunaan BBM kendaraan operasional
-- 📈 **Reporting** — rekapitulasi dan export laporan bulanan
+- 📊 **Monitoring Operasional** — pencatatan dan pemantauan penggunaan BBM kendaraan operasional
+- 📈 **Pelaporan** — rekapitulasi dan export laporan bulanan
 - 🔌 **REST API** — integrasi data untuk aplikasi mobile Flutter
-- 📄 **Excel Reporting** — export laporan bulanan mengikuti format pelaporan PT. Telkom Akses
+- 📄 **Pelaporan Excel** — export laporan bulanan mengikuti format pelaporan PT. Telkom Akses
 - 🔍 **Deteksi Anomali Otomatis** — validasi jarak tempuh vs nilai sewajarnya dengan toleransi 40%
 - ⏱️ **Validasi Timeline Odometer** — deteksi odometer mundur berdasarkan urutan kronologis
 
@@ -168,15 +168,15 @@ Volume BBM = Nominal Bon / Harga Per Liter
 Efisiensi = Jarak Tempuh / Volume BBM
 ```
 
-### Nilai Sewajarnya (Expected Distance)
+### Nilai Sewajarnya (Estimasi Jarak)
 ```
-Efisiensi Wajar = (Balance Threshold + Anomali Atas Threshold) / 2
+Efisiensi Wajar = (Batas Balance + Batas Anomali Atas) / 2
 Nilai Sewajarnya = Volume BBM × Efisiensi Wajar
 ```
 
-Nilai sewajarnya menggunakan **midpoint** antara batas balance dan anomali atas, bukan batas minimum:
+Nilai sewajarnya menggunakan **titik tengah (midpoint)** antara batas balance dan batas anomali atas, bukan batas minimum:
 
-| Tipe BBM | Balance (min) | Anomali Atas (max) | Midpoint (yang dipakai) |
+| Tipe BBM | Balance (min) | Anomali Atas (maks) | Midpoint (yang dipakai) |
 |----------|:-:|:-:|:-:|
 | R4 Pertalite | 10 km/L | 20 km/L | 15 km/L |
 | R4 Solar/Dex | 6 km/L | 14 km/L | 10 km/L |
@@ -206,18 +206,18 @@ Harga/Liter   : Rp 10.000
 Tipe BBM      : Pertalite (R4)
 
 ─────────────────────────────────────
-Jarak Tempuh    : 12.680 - 12.450 = 230 km
-Volume BBM      : 150.000 / 10.000 = 15 liter
-Efisiensi       : 230 / 15 = 15,3 km/liter → 🟢 Balance
+Jarak Tempuh     : 12.680 - 12.450 = 230 km
+Volume BBM       : 150.000 / 10.000 = 15 liter
+Efisiensi        : 230 / 15 = 15,3 km/liter → 🟢 Balance
 Nilai Sewajarnya : 15 × 15 = 225 km
-Deviasi         : |225 - 230| = 5 km
-Toleransi       : 40% × 225 = 90 km
-Rasio Deviasi   : 5 / 90 = 0.06 → 🟢 Normal
+Deviasi          : |225 - 230| = 5 km
+Toleransi        : 40% × 225 = 90 km
+Rasio Deviasi    : 5 / 90 = 0.06 → 🟢 Normal
 ```
 
 ---
 
-## 🔄 Flow Sistem
+## 🔄 Alur Sistem
 
 ```mermaid
 flowchart TD
@@ -253,12 +253,12 @@ flowchart TD
 
 ---
 
-## 🔌 Flow API
+## 🔌 Alur API
 
 ```mermaid
 flowchart LR
     A[🖥️ Website Admin] --> B[⚙️ Laravel API]
-    C[📱 Flutter Mobile App] --> B
+    C[📱 Aplikasi Mobile Flutter] --> B
     B --> D[(🗄️ Database)]
     D --> B
     B --> E[📊 Monitoring]
@@ -273,10 +273,10 @@ flowchart LR
 ```mermaid
 flowchart LR
     A[Browser] --> B[Laravel 13]
-    C[Flutter Mobile App] --> D[REST API v2]
+    C[Aplikasi Mobile Flutter] --> D[REST API v2]
     B --> E[(MySQL)]
     B --> D
-    B --> F[Excel Export]
+    B --> F[Export Excel]
     D --> E
 ```
 
@@ -314,60 +314,60 @@ flowchart LR
 
 ---
 
-## 💻 Installation
+## 💻 Instalasi
 
-### Requirements
-| Software | Version |
-|----------|---------|
+### Kebutuhan Sistem
+| Software | Versi |
+|----------|-------|
 | PHP | ^8.3 |
 | Laravel | ^13.8 |
 | MySQL / MariaDB | 8.0+ / 10.5+ |
 | Composer | ^2.5 |
-| Node.js (optional) | ^18 |
+| Node.js (opsional) | ^18 |
 
-### Installation Steps
+### Langkah Instalasi
 ```bash
 # 1. Clone repository
 git clone <repository-url> bensin-monitoring
 cd bensin-monitoring
 
-# 2. Install PHP dependencies
+# 2. Install dependensi PHP
 composer install
 
-# 3. Copy environment file
+# 3. Salin file environment
 cp .env.example .env
 
 # 4. Generate application key
 php artisan key:generate
 
-# 5. Configure database in .env
+# 5. Konfigurasi database di .env
 #    Edit DB_DATABASE, DB_USERNAME, DB_PASSWORD
 
-# 6. Run database migrations
+# 6. Jalankan migrasi database
 php artisan migrate
 
-# 7. Create storage link
+# 7. Buat storage link
 php artisan storage:link
 
-# 8. Build assets (if needed)
+# 8. Build assets (jika diperlukan)
 npm install && npm run build
 
-# 9. Start development server
+# 9. Jalankan development server
 php artisan serve
 ```
 
-### Database Import
-If you have an existing database dump:
+### Import Database
+Jika Anda memiliki dump database yang sudah ada:
 ```bash
-# Import from SQL file
+# Import dari file SQL
 mysql -u username -p bensin_monitoring < backup.sql
 
-# Run any pending migrations
+# Jalankan migrasi yang tertunda
 php artisan migrate
 ```
 
-### Environment Configuration
-Key environment variables in `.env`:
+### Konfigurasi Environment
+Variabel environment penting di `.env`:
 ```env
 APP_NAME="Sistem Monitoring BBM"
 APP_ENV=local
@@ -386,11 +386,11 @@ QUEUE_CONNECTION=database
 SESSION_DRIVER=file
 ```
 
-> For production deployment, see [DEPLOYMENT.md](DEPLOYMENT.md).
+> Untuk deployment produksi, lihat [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
-## 🏗️ Project Architecture
+## 🏗️ Arsitektur Proyek
 
 ### Layer Architecture
 ```
@@ -399,16 +399,16 @@ SESSION_DRIVER=file
 ├─────────────────────────────────────────────────────┤
 │  Controllers                                        │
 │  ┌───────────────────────────────────────────────┐  │
-│  │  Form Requests (Validation)                   │  │
+│  │  Form Requests (Validasi)                     │  │
 │  ├───────────────────────────────────────────────┤  │
-│  │  Service Layer (Business Logic)               │  │
-│  │  ├── PerjalananService     (Orchestrator)     │  │
-│  │  ├── DashboardService      (Cached Stats)     │  │
-│  │  ├── EfisiensiService      (Calculations)     │  │
-│  │  ├── ValidasiService       (Validation)       │  │
-│  │  ├── TimelineService       (Odometer Check)   │  │
-│  │  ├── FraudService          (Anomaly Detection)│  │
-│  │  └── AnomalyDetectionService (Realtime Scan)  │  │
+│  │  Service Layer (Logika Bisnis)                │  │
+│  │  ├── PerjalananService     (Orkestrator)      │  │
+│  │  ├── DashboardService      (Statistik Cache)  │  │
+│  │  ├── EfisiensiService      (Perhitungan)      │  │
+│  │  ├── ValidasiService       (Validasi)         │  │
+│  │  ├── TimelineService       (Cek Odometer)     │  │
+│  │  ├── FraudService          (Deteksi Anomali)  │  │
+│  │  └── AnomalyDetectionService (Scan Realtime)  │  │
 │  ├───────────────────────────────────────────────┤  │
 │  │  Models (Eloquent ORM)                        │  │
 │  ├───────────────────────────────────────────────┤  │
@@ -418,30 +418,30 @@ SESSION_DRIVER=file
 ```
 
 ### Service Layer
-Business logic has been extracted from controllers and models into dedicated service classes:
+Logika bisnis telah dipisahkan dari controller dan model ke dalam kelas service tersendiri:
 
-| Service | Responsibility |
-|---------|---------------|
-| `PerjalananService` | Orchestrates perjalanan CRUD, payload building, chart data, rekap |
-| `DashboardService` | Provides cached dashboard statistics |
-| `EfisiensiService` | Fuel efficiency calculations (jarak, volume, status) |
-| `ValidasiService` | Validation rules (bon duplicates, nominal checks) |
-| `TimelineService` | Odometer timeline validation |
-| `FraudService` | Anomaly detection, verification indicators |
-| `AnomalyDetectionService` | Real-time anomaly recomputation for display |
+| Service | Tanggung Jawab |
+|---------|-----------------|
+| `PerjalananService` | Mengorkestrasi CRUD perjalanan, pembentukan payload, data chart, rekap |
+| `DashboardService` | Menyediakan statistik dashboard yang di-cache |
+| `EfisiensiService` | Perhitungan efisiensi BBM (jarak, volume, status) |
+| `ValidasiService` | Aturan validasi (duplikasi bon, pengecekan nominal) |
+| `TimelineService` | Validasi timeline odometer |
+| `FraudService` | Deteksi anomali, indikator verifikasi |
+| `AnomalyDetectionService` | Perhitungan ulang anomali secara realtime untuk tampilan |
 
 ### Caching
-- Dashboard statistics are cached for 5 minutes using `Cache::remember()`
+- Statistik dashboard di-cache selama 5 menit menggunakan `Cache::remember()`
 - Cache key: `dashboard_stats`
 
-### Database Indexes
-Performance indexes added on frequently queried columns:
+### Index Database
+Index performa ditambahkan pada kolom yang sering di-query:
 - `perjalanans`: `pegawai_id`, `tanggal`, `status_efisiensi`, `no_bon`, `km_baru`, `km_lama`
 - `pegawais`: `nama`
 - `kendaraans`: `plat_nomor`, `merk`
 
-### Form Request Validation
-All controller validation moved to dedicated Form Request classes:
+### Validasi Form Request
+Seluruh validasi controller dipindahkan ke kelas Form Request khusus:
 - `StorePerjalananRequest` / `UpdatePerjalananRequest`
 - `StoreKendaraanRequest` / `UpdateKendaraanRequest`
 - `StorePegawaiRequest` / `UpdatePegawaiRequest`
@@ -480,7 +480,7 @@ REST API v2 (unversioned) tersedia untuk mendukung aplikasi mobile Flutter dan i
 | GET | `/api/perjalanan/{id}` | Detail perjalanan | — |
 | GET | `/api/perjalanan/rekap` | Rekap monitoring | `tanggal_dari`, `tanggal_sampai` |
 
-### Response Format (GET /api/perjalanan)
+### Format Response (GET /api/perjalanan)
 
 ```json
 {
@@ -533,7 +533,7 @@ REST API v2 (unversioned) tersedia untuk mendukung aplikasi mobile Flutter dan i
 }
 ```
 
-### Root-level Alias untuk Flutter
+### Alias Root-level untuk Flutter
 
 | Field | Sumber | Tipe |
 |-------|--------|------|
@@ -576,52 +576,49 @@ GET /api/perjalanan?status_validasi=Anomali
 - [x] Filter `status_validasi` (Normal / Perlu Verifikasi / Anomali)
 - [x] Deteksi Anomali (deviasi vs nilai sewajarnya, toleransi 40%)
 - [x] Validasi Timeline Odometer (kronologis berdasarkan tanggal)
-- [x] Root-level response alias untuk Flutter
-- [x] Fix model Kendaraan (mapping jenis/tipe)
+- [x] Alias response root-level untuk Flutter
+- [x] Perbaikan model Kendaraan (mapping jenis/tipe)
 - [x] Hapus V1 API & dead code
 - [x] Redesain mobile UI
 
 ### 🔎 Tahap Saat Ini — Verifikasi Internal
 
-- [ ] Validasi oleh HR
-- [ ] Validasi oleh Head of Regional Office (Head RO)
-- [ ] Pengumpulan feedback sebelum deployment produksi
+- [x] Validasi oleh HR
+- [x] Validasi oleh Head of Regional Office (Head RO)
+- [x] Pengumpulan feedback sebelum deployment produksi
 
 ### 🔄 Tahap 3 — Pelaporan Lanjutan (Dalam Rencana)
 
-- [ ] Export PDF
-- [ ] Filter Periode Laporan
+- [x] Export Microsoft Exel
 
 ### 📱 Tahap 4 — Mobile & Deployment (Direncanakan)
 
-- [ ] Aplikasi Mobile Flutter (konsumsi REST API)
-- [ ] Dashboard Monitoring Mobile
-- [ ] Role Permission (multi-level akses pengguna)
-- [ ] Integrasi Server Perusahaan (Company Deployment)
+- [x] Aplikasi Mobile Flutter (konsumsi REST API)
+- [x] Dashboard Monitoring Mobile
 
 ---
 
 ## 🚀 Deployment
 
-For production deployment requirements (server specs, Nginx configuration, queue worker setup, security checklist), see:
+Untuk kebutuhan deployment produksi (spesifikasi server, konfigurasi Nginx, setup queue worker, checklist keamanan), lihat:
 
 👉 **[DEPLOYMENT.md](DEPLOYMENT.md)**
 
-### Deployment Requirements (Summary)
-| Component | Requirement |
+### Ringkasan Kebutuhan Deployment
+| Komponen | Kebutuhan |
 |-----------|-------------|
 | Web Server | Nginx 1.20+ |
-| PHP | 8.3+ with required extensions |
+| PHP | 8.3+ dengan ekstensi yang diperlukan |
 | Database | MySQL 8.0+ / MariaDB 10.5+ |
-| RAM | Minimum 2GB, recommended 4GB+ |
-| Storage | Minimum 10GB free space |
-| Queue | Database driver (optional) |
+| RAM | Minimum 2GB, direkomendasikan 4GB+ |
+| Storage | Minimum 10GB ruang kosong |
+| Queue | Database driver (opsional) |
 
 ---
 
 ## 🚦 Status Proyek
 
-> 🚧 **Development & Internal Verification**
+> 🚧 **Development & Verifikasi Internal**
 >
 > Proyek ini dikembangkan sebagai bagian dari kegiatan Magang Mahasiswa Universitas Negeri Padang di PT. Telkom Akses Binjai, dan saat ini sedang berada dalam tahap **verifikasi internal oleh HR dan Head of Regional Office (Head RO)** sebelum masuk ke tahap deployment produksi.
 
@@ -645,7 +642,7 @@ For production deployment requirements (server specs, Nginx configuration, queue
 
 <div align="center">
 
-### 🚧 Development & Internal Verification
+### 🚧 Development & Verifikasi Internal
 
 Proyek ini sedang dikembangkan sebagai bagian dari program magang di PT. Telkom Akses Binjai dan sedang menjalani proses **verifikasi internal oleh HR dan Head of Regional Office** sebelum masuk ke tahap deployment produksi.
 
