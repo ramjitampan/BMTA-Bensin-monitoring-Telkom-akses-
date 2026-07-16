@@ -591,6 +591,7 @@
             <th class="top" rowspan="2">Tanggal</th>
             <th class="top" rowspan="2">Pegawai</th>
             <th class="top" rowspan="2" style="min-width:110px">Tujuan</th>
+            <th class="top" rowspan="2" style="min-width:110px">Uraian</th>
             <th class="top" rowspan="2">Kendaraan</th>
             <th class="top" rowspan="2">No Pol</th>
             <th class="top bg-blue" colspan="3" style="text-align:center;border-bottom:1px solid #dbeafe">Odometer</th>
@@ -628,8 +629,12 @@
             <td style="font-weight:700;color:#111827;white-space:nowrap">{{ $p->pegawai->nama ?? '-' }}</td>
             <td>
               <span style="font-size:12px;font-weight:500;color:#374151">{{ $p->tujuan }}</span>
+            </td>
+            <td>
               @if($p->uraian)
-                <p class="muted" style="margin:2px 0 0;white-space:normal">{{ Str::limit($p->uraian, 45) }}</p>
+                <span class="muted" style="font-size:11px">{{ Str::limit($p->uraian, 50) }}</span>
+              @else
+                <span class="muted">—</span>
               @endif
             </td>
             <td class="center">{{ $p->kendaraan->tipe ?? '-' }}</td>
@@ -700,7 +705,7 @@
           </tr>
           @empty
           <tr>
-            <td colspan="19" class="empty-state">
+            <td colspan="20" class="empty-state">
               Belum ada data perjalanan.
               <a href="{{ route('perjalanan.create') }}">Tambah sekarang →</a>
             </td>
@@ -709,7 +714,7 @@
         </tbody>
         <tfoot>
           <tr class="tbl-footer">
-            <td colspan="9" style="text-align:right;font-weight:400;color:#9ca3af">Total keseluruhan:</td>
+            <td colspan="10" style="text-align:right;font-weight:400;color:#9ca3af">Total keseluruhan:</td>
             <td style="text-align:center;font-family:'JetBrains Mono',monospace">
               {{ number_format($perjalanans->sum('vol_liter'), 2, ',', '.') }} L
             </td>
