@@ -599,7 +599,7 @@
             <th class="top" rowspan="2" style="text-align:center">Foto</th>
             <th class="top" rowspan="2" style="text-align:center">Efisiensi</th>
             <th class="top" rowspan="2" style="text-align:center">Status<br>Efisiensi</th>
-            <th class="top" rowspan="2" style="text-align:center">Status<br>Validasi</th>
+            <th class="top" rowspan="2" style="text-align:center">Detail<br>Validasi</th>
             <th class="top" rowspan="2" style="text-align:center;min-width:140px">Indikasi</th>
             <th class="top" rowspan="2" style="text-align:center">Aksi</th>
           </tr>
@@ -674,13 +674,7 @@
               @endif
             </td>
             <td class="center">
-              @if($statusValidasi === 'Normal')
-                <span class="badge badge-green" style="cursor:pointer" onclick="openModal({{ $loop->index }})">Normal</span>
-              @elseif($statusValidasi === 'Perlu Verifikasi')
-                <span class="badge" style="cursor:pointer;background:#fffbeb;color:#b45309;border-color:#fde68a" onclick="openModal({{ $loop->index }})">Perlu Verifikasi</span>
-              @else
-                <span class="badge badge-red badge-pulse" style="cursor:pointer" onclick="openModal({{ $loop->index }})">Anomali</span>
-              @endif
+              <span class="badge" style="cursor:pointer;background:#f3f4f6;color:#374151;border-color:#d1d5db" onclick="openModal({{ $loop->index }})">Detail</span>
             </td>
             <td>
               @if(count($displayFlags) > 0)
@@ -748,11 +742,7 @@
         </div>
         <div class="m-card-badges">
           @php
-            $valBadge = match($statusVal2) {
-              'Anomali' => '<span class="badge badge-red">Anomali</span>',
-              'Perlu Verifikasi' => '<span class="badge badge-amber">Perlu Verifikasi</span>',
-              default => '<span class="badge badge-green">Normal</span>',
-            };
+            $valBadge = '<span class="badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">Detail</span>';
             $efBadge = match($p->status_efisiensi) {
               'balance' => '<span class="badge badge-green">Balance</span>',
               'boros' => '<span class="badge badge-amber">Boros</span>',
@@ -857,14 +847,7 @@ function openModal(index) {
 
     const isAnomali = d.status_validasi === 'Anomali';
     const isPerluVerifikasi = d.status_validasi === 'Perlu Verifikasi';
-    let statusBadge;
-    if (isAnomali) {
-        statusBadge = '<span class="badge badge-red">Anomali</span>';
-    } else if (isPerluVerifikasi) {
-        statusBadge = '<span class="badge" style="background:#fffbeb;color:#b45309;border-color:#fde68a">Perlu Verifikasi</span>';
-    } else {
-        statusBadge = '<span class="badge badge-green">Normal</span>';
-    }
+    let statusBadge = '<span class="badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">Detail</span>';
 
     let efisiensiBadge;
     if (d.status_efisiensi === 'Balance') {
@@ -942,7 +925,7 @@ function openModal(index) {
                 <div class="value">${timelineHtml}</div>
             </div>
             <div class="detail-field">
-                <span class="label">Status Validasi</span>
+                <span class="label">Detail Validasi</span>
                 <span class="value">${statusBadge}</span>
             </div>
             <div class="detail-field">
