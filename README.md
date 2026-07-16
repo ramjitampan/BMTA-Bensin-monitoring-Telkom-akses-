@@ -367,25 +367,6 @@ php artisan migrate
 ```
 
 ### Konfigurasi Environment
-Variabel environment penting di `.env`:
-```env
-APP_NAME="Sistem Monitoring BBM"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=bensin_monitoring
-DB_USERNAME=root
-DB_PASSWORD=
-
-CACHE_DRIVER=file
-QUEUE_CONNECTION=database
-SESSION_DRIVER=file
-```
-
 > Untuk deployment produksi, lihat [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
