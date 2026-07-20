@@ -597,6 +597,58 @@ Untuk kebutuhan deployment produksi (spesifikasi server, konfigurasi Nginx, setu
 
 ---
 
+## 🛠️ Instalasi Lokal (Development)
+
+### Prasyarat
+- PHP 8.3+
+- Composer 2.5+
+- Node.js 18+ & npm
+- MySQL 8.0+ / MariaDB 10.5+
+
+### Langkah Instalasi
+
+```bash
+# 1. Clone repositori
+git clone <repository-url> bensin-monitoring
+cd bensin-monitoring
+
+# 2. Install dependensi PHP
+composer install
+
+# 3. Install dependensi frontend & build asset
+npm install
+npm run build
+
+# 4. Konfigurasi environment
+cp .env.example .env
+php artisan key:generate
+# Edit .env sesuai konfigurasi database lokal
+
+# 5. Jalankan migrasi dan seeder
+php artisan migrate --seed
+
+# 6. Buat storage link
+php artisan storage:link
+
+# 7. Jalankan development server
+php artisan serve
+```
+
+Akses aplikasi di `http://localhost:8000`.
+
+### Data Dummy
+Seeder menyediakan data dummy untuk demo:
+- **6 Pegawai** (Manager, Supervisor, Staff, Driver)
+- **6 Kendaraan** (R4 dan R6, bensin dan solar)
+- **24 Perjalanan** mencakup 3 bulan terakhir (termasuk 4 data anomali untuk demo deteksi fraud)
+
+Untuk mengisi ulang data dummy:
+```bash
+php artisan migrate:fresh --seed
+```
+
+---
+
 ## 🚦 Status Proyek
 
 > 🚧 **Development & Verifikasi Internal**
