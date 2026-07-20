@@ -173,9 +173,9 @@ class FraudService
             $flags[] = match ($code) {
                 'no_bon_duplikat'              => 'Bon Duplikat',
                 'harga_tidak_wajar'            => 'Harga Tidak Wajar',
-                'nominal_bon_kelipatan_bulat'  => 'Harga Tidak Wajar',
-                'jarak_melebihi_batas_harian'   => 'Volume Tidak Wajar',
-                'efisiensi_di_luar_batas_mutlak' => 'Volume Tidak Wajar',
+                'nominal_bon_kelipatan_bulat'  => 'Nominal Bon Bulat',
+                'jarak_melebihi_batas_harian'   => 'Jarak Tidak Wajar',
+                'efisiensi_di_luar_batas_mutlak' => 'Efisiensi Tidak Wajar',
                 default                        => '',
             };
         }

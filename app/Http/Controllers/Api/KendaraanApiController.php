@@ -10,11 +10,17 @@ class KendaraanApiController extends Controller
 {
     public function index(): JsonResponse
     {
-        $kendaraans = Kendaraan::all(['id', 'plat_nomor', 'merk', 'jenis', 'tahun']);
+        $kendaraans = Kendaraan::paginate(15, ['id', 'plat_nomor', 'merk', 'jenis', 'tahun']);
 
         return response()->json([
             'message' => 'Data kendaraan berhasil diambil.',
-            'data'    => $kendaraans,
+            'data'    => $kendaraans->items(),
+            'meta'    => [
+                'current_page' => $kendaraans->currentPage(),
+                'last_page'    => $kendaraans->lastPage(),
+                'per_page'     => $kendaraans->perPage(),
+                'total'        => $kendaraans->total(),
+            ],
         ]);
     }
 

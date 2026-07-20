@@ -144,24 +144,10 @@ class PerjalananService
             default => ($status === 'anomali') ? 50 : 10,
         };
 
-        $displayFlags = [];
-        foreach ($verifikasiResult['indikasi'] as $code) {
-            $displayFlags[] = match ($code) {
-                'no_bon_duplikat'              => 'Bon Duplikat',
-                'harga_tidak_wajar'            => 'Harga Tidak Wajar',
-                'nominal_bon_kelipatan_bulat'  => 'Harga Tidak Wajar',
-                'jarak_melebihi_batas_harian'   => 'Volume Tidak Wajar',
-                'efisiensi_di_luar_batas_mutlak' => 'Volume Tidak Wajar',
-                default                        => '',
-            };
-        }
-        if (in_array($timeline['status'] ?? 'Logis', ['Tidak Logis'])) {
-            $displayFlags[] = 'Timeline Tidak Logis';
-        }
-        if (in_array($timeline['status'] ?? 'Logis', ['Perlu Verifikasi'])) {
-            $displayFlags[] = 'Odometer Mundur';
-        }
-        $displayFlags = array_values(array_unique(array_filter($displayFlags)));
+        $displayFlags = $this->fraudService->resolveDisplayFlags(
+            $verifikasiResult['indikasi'],
+            $timeline['status'] ?? 'Logis'
+        );
 
         $fraudFlags = [
             'verifikasi_indikasi' => $verifikasiResult['indikasi'],

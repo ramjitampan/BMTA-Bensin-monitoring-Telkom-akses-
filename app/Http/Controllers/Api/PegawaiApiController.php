@@ -10,11 +10,17 @@ class PegawaiApiController extends Controller
 {
     public function index(): JsonResponse
     {
-        $pegawais = Pegawai::all(['id', 'nama', 'jabatan', 'divisi', 'no_hp']);
+        $pegawais = Pegawai::paginate(15, ['id', 'nama', 'jabatan', 'divisi', 'no_hp']);
 
         return response()->json([
             'message' => 'Data pegawai berhasil diambil.',
-            'data'    => $pegawais,
+            'data'    => $pegawais->items(),
+            'meta'    => [
+                'current_page' => $pegawais->currentPage(),
+                'last_page'    => $pegawais->lastPage(),
+                'per_page'     => $pegawais->perPage(),
+                'total'        => $pegawais->total(),
+            ],
         ]);
     }
 
