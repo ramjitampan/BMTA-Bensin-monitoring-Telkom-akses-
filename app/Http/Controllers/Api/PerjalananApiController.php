@@ -10,6 +10,7 @@ use App\Services\EfisiensiService;
 use App\Services\PerjalananService;
 use App\Services\ValidasiService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PerjalananApiController extends Controller
 {
