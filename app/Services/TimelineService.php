@@ -4,6 +4,12 @@ namespace App\Services;
 
 use App\Models\Perjalanan;
 
+/**
+ * Validasi kronologi odometer kendaraan.
+ * 
+ * Memeriksa apakah km_baru pada suatu perjalanan logis dibandingkan
+ * dengan data perjalanan sebelumnya untuk kendaraan yang sama.
+ */
 class TimelineService
 {
     public function getOdometerTerakhir(int $kendaraanId, ?int $excludeId = null): ?float

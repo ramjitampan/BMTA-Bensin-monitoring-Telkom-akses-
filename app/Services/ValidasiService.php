@@ -5,6 +5,12 @@ namespace App\Services;
 use App\Models\Kendaraan;
 use App\Models\Perjalanan;
 
+/**
+ * Validasi data input perjalanan.
+ * 
+ * Memeriksa nominal ganjil, duplikasi bon, batas jarak harian,
+ * dan duplikasi record berdasarkan tanggal-kendaraan-odometer.
+ */
 class ValidasiService
 {
     public function isNominalGanjil(float $jumlah): bool

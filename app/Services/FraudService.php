@@ -4,6 +4,12 @@ namespace App\Services;
 
 use App\Models\Kendaraan;
 
+/**
+ * Logika deteksi fraud/verifikasi perjalanan.
+ * 
+ * Mendeteksi indikasi kecurangan seperti bon duplikat, harga tidak wajar,
+ * jarak melebihi batas, dan efisiensi di luar batas mutlak.
+ */
 class FraudService
 {
     private const TOLERANCE_RATIO = 0.4;

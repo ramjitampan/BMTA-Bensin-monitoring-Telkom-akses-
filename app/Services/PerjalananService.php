@@ -9,6 +9,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Service utama untuk operasi CRUD perjalanan, termasuk perhitungan
+ * fraud detection, validasi duplikat, dan build payload sebelum insert/update.
+ */
 class PerjalananService
 {
     public function __construct(

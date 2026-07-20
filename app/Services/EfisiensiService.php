@@ -2,6 +2,10 @@
 
 namespace App\Services;
 
+/**
+ * Perhitungan efisiensi BBM: jarak, volume liter, efisiensi km/L,
+ * dAN penentuan status efisiensi (balance/boros/anomali).
+ */
 class EfisiensiService
 {
     public function hitungJarak(float $kmLama, float $kmBaru): float

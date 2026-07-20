@@ -5,6 +5,12 @@ namespace App\Services;
 use App\Models\Perjalanan;
 use Illuminate\Support\Collection;
 
+/**
+ * Menghitung deteksi anomali perjalanan secara on-the-fly.
+ * 
+ * Method getAll() mengembalikan seluruh data perjalanan dengan fraud_score dan fraud_flags
+ * hasil komputasi real-time. Method getPerjalananJson() memformat data untuk modal detail.
+ */
 class AnomalyDetectionService
 {
     public function __construct(

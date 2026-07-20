@@ -7,6 +7,9 @@ use App\Models\Pegawai;
 use App\Models\Perjalanan;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Menyediakan data statistik dashboard dengan cache 5 menit.
+ */
 class DashboardService
 {
     public function getDashboardData(): array
