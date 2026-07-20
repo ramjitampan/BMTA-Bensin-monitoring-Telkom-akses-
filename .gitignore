@@ -25,4 +25,5 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/DEPLOYMENT.md
+composer.phar
+/composer.lock
