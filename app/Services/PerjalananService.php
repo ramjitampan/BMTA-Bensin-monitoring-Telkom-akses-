@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Kendaraan;
 use App\Models\Perjalanan;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,6 +33,14 @@ class PerjalananService
         }
 
         return $perjalanans;
+    }
+
+    public function getPaginated(?string $filter = null): LengthAwarePaginator
+    {
+        return Perjalanan::with('pegawai', 'kendaraan')
+            ->orderByVehicleTimeline()
+            ->when($filter === 'anomali', fn($q) => $q->where('fraud_flags->status_anomali', 'Anomali'))
+            ->paginate(15);
     }
 
     public function getChartData(Collection $perjalanans): array

@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePegawaiRequest;
 use App\Http\Requests\UpdatePegawaiRequest;
 use App\Models\Pegawai;
+use App\Services\DashboardService;
 
 class PegawaiController extends Controller
 {
     public function index()
     {
-        $pegawais = Pegawai::all();
+        $pegawais = Pegawai::paginate(15);
         return view('pegawai.index', compact('pegawais'));
     }
 
@@ -28,7 +29,9 @@ class PegawaiController extends Controller
             'no_hp' => $request->no_hp,
         ]);
 
-        return redirect()->route('pegawai.index');
+        app(DashboardService::class)->forgetCache();
+
+        return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil ditambahkan.');
     }
 
     public function edit(Pegawai $pegawai)
@@ -45,12 +48,15 @@ class PegawaiController extends Controller
             'no_hp' => $request->no_hp,
         ]);
 
-        return redirect()->route('pegawai.index');
+        app(DashboardService::class)->forgetCache();
+
+        return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil diperbarui.');
     }
 
     public function destroy(Pegawai $pegawai)
     {
         $pegawai->delete();
-        return redirect()->route('pegawai.index');
+        app(DashboardService::class)->forgetCache();
+        return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil dihapus.');
     }
 }

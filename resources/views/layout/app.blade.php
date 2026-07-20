@@ -28,14 +28,14 @@ tailwind.config = {
           dark:   '#B10014',
           darker: '#7A000D',
           soft:   '#FEE8EB',
-          ink:    '#1A1A2E',
-          muted:  '#6B7280',
+          ink:    '#000000',
+          muted:  '#47494c',
           bg:     '#F8F8FA',
           border: '#E5E7EB',
         }
       },
       boxShadow: {
-        'ta':    '0 10px 30px rgba(26,26,46,0.07)',
+        'ta':    '0 10px 30px rgba(255, 255, 255, 0.07)',
         'ta-lg': '0 20px 48px rgba(177,0,20,0.18)',
         'ta-xl': '0 32px 64px rgba(177,0,20,0.22)',
       },
@@ -47,199 +47,10 @@ tailwind.config = {
 }
 </script>
 
-<style>
-  /* ── Global Reset & Base ── */
-  *, *::before, *::after { box-sizing: border-box; }
-  body {
-    font-family: 'Inter', sans-serif;
-    color: #1A1A2E;
-    background: #F8F8FA;
-    overflow-x: hidden;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  main { flex: 1; }
-  h1,h2,h3,h4,h5,.font-display { font-family: 'Poppins', sans-serif; }
-
-  /* ── Eyebrow label ── */
-  .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #E2001A;
-  }
-  .eyebrow::before {
-    content: '';
-    width: 22px;
-    height: 3px;
-    background: #E2001A;
-    border-radius: 4px;
-    display: inline-block;
-  }
-
-  /* ── Navbar ── */
-  #mainNavbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(255,255,255,0.97);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid #E5E7EB;
-    transition: box-shadow 0.3s ease;
-  }
-  .navbar-scrolled { box-shadow: 0 8px 32px rgba(26,26,46,0.10); }
-
-  /* ── Nav links ── */
-  .nav-link-item {
-    font-weight: 600;
-    font-size: 0.93rem;
-    padding: 8px 14px;
-    border-radius: 8px;
-    transition: color 0.18s, background 0.18s;
-    color: #1A1A2E;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .nav-link-item:hover,
-  .nav-link-item.active {
-    color: #E2001A;
-    background: #FEE8EB;
-  }
-
-  /* ── Mobile menu ── */
-  #mobileMenu { display: none; }
-  #mobileMenu.open { display: flex; }
-
-  /* ── Feature card ── */
-  .feature-card {
-    position: relative;
-    overflow: hidden;
-    transition: transform .25s, box-shadow .25s, border-color .25s;
-  }
-  .feature-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #E2001A, #B10014);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform .3s ease;
-  }
-  .feature-card:hover::before { transform: scaleX(1); }
-  .feature-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 48px rgba(177,0,20,0.16);
-    border-color: transparent !important;
-  }
-  .feature-icon { transition: background .25s, color .25s; }
-  .feature-card:hover .feature-icon {
-    background: linear-gradient(135deg, #E2001A, #B10014) !important;
-    color: #fff !important;
-  }
-
-  /* ── Stat card ── */
-  .stat-card { transition: transform .25s, box-shadow .25s; }
-  .stat-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 48px rgba(177,0,20,0.18);
-  }
-
-  /* ── Flow step ── */
-  .flow-step { transition: transform .25s, box-shadow .25s; }
-  .flow-step:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(26,26,46,0.08);
-  }
-
-  /* ── Footer link ── */
-  .footer-link {
-    color: rgba(255,255,255,0.72);
-    transition: color .18s, padding-left .18s;
-    display: inline-block;
-    text-decoration: none;
-  }
-  .footer-link:hover { color: #fff; padding-left: 4px; }
-
-  /* ── About badge ── */
-  .about-badge {
-    background: rgba(255,255,255,0.13);
-    border: 1px solid rgba(255,255,255,0.24);
-    border-radius: 12px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    font-size: 0.91rem;
-    color: #fff;
-    margin-bottom: 10px;
-  }
-
-  /* ── API diagram ── */
-  .api-line {
-    flex: 1;
-    height: 2px;
-    background: repeating-linear-gradient(90deg, #E2001A 0 8px, transparent 8px 14px);
-    min-width: 24px;
-  }
-  .api-box {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 16px;
-    padding: 20px 16px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(26,26,46,0.07);
-    width: 148px;
-    flex-shrink: 0;
-  }
-  .api-box .icon-wrap {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: #FEE8EB;
-    color: #E2001A;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.35rem;
-    margin: 0 auto 10px;
-  }
-  .api-box.center-box { border-color: #E2001A; }
-  .api-box.center-box .icon-wrap {
-    background: linear-gradient(135deg, #E2001A, #B10014);
-    color: #fff;
-  }
-  .api-box span { font-size: 0.83rem; font-weight: 700; color: #1A1A2E; }
-
-  /* ── Focus & motion ── */
-  a:focus-visible, button:focus-visible {
-    outline: 3px solid #B10014;
-    outline-offset: 2px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  }
-
-  /* ── Page content padding (so content isn't hugged against edges on mobile) ── */
-  .page-content {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-  }
-  @media (min-width: 640px) { .page-content { padding: 2.5rem 1.5rem; } }
-  @media (min-width: 1024px) { .page-content { padding: 3rem 2rem; } }
-</style>
-
+@vite('resources/Tema/layout.css')
 @stack('styles')
 </head>
-<body class="antialiased">
+<body class="antialiased bg-[#F8F8FA]">
 
 {{-- ============================================================ --}}
 {{-- NAVBAR                                                        --}}
@@ -248,11 +59,9 @@ tailwind.config = {
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-3">
 
     {{-- Logo --}}
-    <a href="{{ url('/') }}" class="flex items-center gap-3 no-underline group">
-      {{-- Ganti div ini dengan <img src="{{ asset('images/logo-telkom-akses.png') }}" …> jika ada logo --}}
-      <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-ta-red to-ta-dark flex items-center justify-center text-white font-display font-extrabold text-[0.95rem] shadow-[0_6px_18px_rgba(226,0,26,0.38)] shrink-0 transition-transform duration-200 group-hover:scale-105">
-        TA
-      </div>
+    <a href="{{ url('/') }}" class="flex items-center gap-5 no-underline group">
+      <img src="{{ asset('asset/foto/Image2.png') }}" alt="PT. Telkom Akses Binjai"
+           class="h-12 w-auto object-contain shrink-0 transition-transform duration-200 group-hover:scale-105">
       <span class="leading-tight">
         <span class="block text-[0.67rem] font-semibold tracking-widest uppercase text-ta-muted">PT. Telkom Akses Binjai</span>
         <span class="block font-display font-bold text-[1.01rem] text-ta-ink group-hover:text-ta-red transition-colors">Monitoring BBM</span>
@@ -265,6 +74,8 @@ tailwind.config = {
          class="nav-link-item {{ request()->is('/') ? 'active' : '' }}">
         Beranda
       </a>
+
+      @auth
       <a href="{{ route('pegawai.index') }}"
          class="nav-link-item {{ request()->routeIs('pegawai.*') ? 'active' : '' }}">
         Data Pegawai
@@ -281,6 +92,20 @@ tailwind.config = {
          class="ml-3 inline-flex items-center gap-2 bg-gradient-to-br from-ta-red to-ta-dark text-white font-semibold text-[0.93rem] px-5 py-2.5 rounded-full shadow-[0_6px_18px_rgba(226,0,26,0.32)] hover:brightness-105 hover:-translate-y-[1px] transition-all">
         <i class="fa-solid fa-gauge-high text-sm"></i> Dashboard
       </a>
+
+      <form method="POST" action="{{ route('logout') }}" class="ml-2">
+        @csrf
+        <button type="submit"
+                class="text-sm text-ta-muted hover:text-ta-red px-3 py-2 transition-colors">
+          <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar
+        </button>
+      </form>
+      @else
+      <a href="{{ route('login') }}"
+         class="ml-3 inline-flex items-center gap-2 bg-gradient-to-br from-ta-red to-ta-dark text-white font-semibold text-[0.93rem] px-5 py-2.5 rounded-full hover:brightness-105 transition-all">
+        <i class="fa-solid fa-right-to-bracket text-sm"></i> Masuk
+      </a>
+      @endauth
     </div>
 
     {{-- Mobile hamburger button --}}
@@ -304,6 +129,8 @@ tailwind.config = {
        class="nav-link-item block {{ request()->is('/') ? 'active' : '' }}">
       <i class="fa-solid fa-house mr-1.5 text-sm"></i> Beranda
     </a>
+
+    @auth
     <a href="{{ route('pegawai.index') }}"
        class="nav-link-item block {{ request()->routeIs('pegawai.*') ? 'active' : '' }}">
       <i class="fa-solid fa-users mr-1.5 text-sm"></i> Data Pegawai
@@ -320,6 +147,19 @@ tailwind.config = {
        class="mt-2 flex items-center justify-center gap-2 bg-gradient-to-br from-ta-red to-ta-dark text-white font-semibold text-sm px-5 py-2.5 rounded-full shadow-[0_6px_18px_rgba(226,0,26,0.28)]">
       <i class="fa-solid fa-gauge-high"></i> Dashboard Monitoring
     </a>
+    <form method="POST" action="{{ route('logout') }}" class="mt-2">
+      @csrf
+      <button type="submit"
+              class="w-full flex items-center justify-center gap-2 text-sm text-ta-muted hover:text-ta-red py-2.5 transition-colors">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+      </button>
+    </form>
+    @else
+    <a href="{{ route('login') }}"
+       class="mt-2 flex items-center justify-center gap-2 bg-gradient-to-br from-ta-red to-ta-dark text-white font-semibold text-sm px-5 py-2.5 rounded-full">
+      <i class="fa-solid fa-right-to-bracket"></i> Masuk
+    </a>
+    @endauth
 
   </div>
 </nav>
@@ -341,13 +181,8 @@ tailwind.config = {
 
       {{-- ── Branding ── --}}
       <div>
-        <div class="inline-flex items-center justify-center bg-white rounded-2xl px-5 py-3 mb-5 shadow-[0_2px_12px_rgba(0,0,0,0.25)]">
-          {{-- Ganti dengan <img src="{{ asset('asset/foto/Image2.png') }}" alt="Logo Telkom Akses" class="h-14 w-auto object-contain"> --}}
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-ta-red to-ta-dark flex items-center justify-center text-white font-display font-extrabold text-sm">
-            TA
-          </div>
-        </div>
-
+        <img src="{{ asset('asset/foto/image.png') }}" alt="PT. Telkom Akses Binjai"
+     class="h-14 w-auto object-contain mb-9">
         <div class="mb-4">
           <h3 class="font-display font-semibold text-xl leading-tight">Monitoring BBM</h3>
           <p class="text-white/50 text-xs mt-1">PT. Telkom Akses Binjai</p>
@@ -523,6 +358,8 @@ const counterObserver = new IntersectionObserver(entries => {
 document.querySelectorAll('.counter').forEach(c => counterObserver.observe(c));
 </script>
 
-@stack('scripts')
+    @vite('resources/js/app.js')
+
+    @stack('scripts')
 </body>
 </html>

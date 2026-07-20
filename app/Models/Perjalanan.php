@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Perjalanan extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'pegawai_id', 'kendaraan_id', 'tanggal', 'tujuan', 'uraian',
         'km_lama', 'km_baru', 'jarak', 'vol_liter', 'harga_per_liter',

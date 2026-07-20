@@ -1,0 +1,46 @@
+@import "../design-system/colors.css";
+@import "../design-system/spacing.css";
+@import "../design-system/radius.css";
+@import "../design-system/shadow.css";
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+    color: #1c1c21;
+    background: #F8F8FA;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+.font-display {
+    font-family: "Poppins", sans-serif;
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid var(--ta-dark);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}

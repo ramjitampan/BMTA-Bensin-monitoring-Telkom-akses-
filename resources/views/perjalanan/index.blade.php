@@ -307,13 +307,22 @@
   background: rgba(0,0,0,0.5);
   align-items: center; justify-content: center;
   padding: 20px;
+  animation: overlayIn .2s ease;
 }
 .modal-overlay.open { display: flex; }
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 .modal-box {
   background: #fff; border-radius: 16px;
   max-width: 640px; width: 100%;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   max-height: 90vh; overflow-y: auto;
+}
+.modal-overlay.open .modal-box {
+  animation: modalIn .25s ease both;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -321,10 +330,11 @@
 }
 .modal-header h3 { font-size: 16px; font-weight: 700; margin: 0; }
 .modal-close {
-  background: none; border: none; font-size: 20px;
-  color: #9ca3af; cursor: pointer; padding: 4px;
+  background: none; border: none; font-size: 24px;
+  color: #9ca3af; cursor: pointer; padding: 4px; line-height: 1;
+  border-radius: 6px; transition: background 0.15s, color 0.15s;
 }
-.modal-close:hover { color: #111827; }
+.modal-close:hover { background: #f3f4f6; color: #111827; }
 .modal-body { padding: 24px; }
 .detail-grid {
   display: grid;
@@ -591,7 +601,6 @@
             <th class="top" rowspan="2">Tanggal</th>
             <th class="top" rowspan="2">Pegawai</th>
             <th class="top" rowspan="2" style="min-width:110px">Tujuan</th>
-            <th class="top" rowspan="2" style="min-width:110px">Uraian</th>
             <th class="top" rowspan="2">Kendaraan</th>
             <th class="top" rowspan="2">No Pol</th>
             <th class="top bg-blue" colspan="3" style="text-align:center;border-bottom:1px solid #dbeafe">Odometer</th>
@@ -629,12 +638,8 @@
             <td style="font-weight:700;color:#111827;white-space:nowrap">{{ $p->pegawai->nama ?? '-' }}</td>
             <td>
               <span style="font-size:12px;font-weight:500;color:#374151">{{ $p->tujuan }}</span>
-            </td>
-            <td>
               @if($p->uraian)
-                <span class="muted" style="font-size:11px">{{ Str::limit($p->uraian, 50) }}</span>
-              @else
-                <span class="muted">—</span>
+                <p class="muted" style="margin:2px 0 0;white-space:normal">{{ Str::limit($p->uraian, 45) }}</p>
               @endif
             </td>
             <td class="center">{{ $p->kendaraan->tipe ?? '-' }}</td>
@@ -705,7 +710,7 @@
           </tr>
           @empty
           <tr>
-            <td colspan="20" class="empty-state">
+            <td colspan="19" class="empty-state">
               Belum ada data perjalanan.
               <a href="{{ route('perjalanan.create') }}">Tambah sekarang →</a>
             </td>
@@ -714,7 +719,7 @@
         </tbody>
         <tfoot>
           <tr class="tbl-footer">
-            <td colspan="10" style="text-align:right;font-weight:400;color:#9ca3af">Total keseluruhan:</td>
+            <td colspan="9" style="text-align:right;font-weight:400;color:#9ca3af">Total keseluruhan:</td>
             <td style="text-align:center;font-family:'JetBrains Mono',monospace">
               {{ number_format($perjalanans->sum('vol_liter'), 2, ',', '.') }} L
             </td>
@@ -824,11 +829,11 @@
 </a>
 
 {{-- ── Modal Detail Pembuktian ── --}}
-<div id="validasiModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+<div id="validasiModal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
       <h3>Detail Pembuktian</h3>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <button class="modal-close" id="btnCloseModal">&times;</button>
     </div>
     <div class="modal-body" id="validasiModalBody">
     </div>
@@ -850,9 +855,14 @@ function openModal(index) {
     const d = perjalananData[index];
     if (!d) return;
 
-    const isAnomali = d.status_validasi === 'Anomali';
-    const isPerluVerifikasi = d.status_validasi === 'Perlu Verifikasi';
-    let statusBadge = '<span class="badge" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">Detail</span>';
+    let statusBadge;
+    if (d.status_validasi === 'Anomali') {
+        statusBadge = '<span class="badge badge-red">Anomali</span>';
+    } else if (d.status_validasi === 'Perlu Verifikasi') {
+        statusBadge = '<span class="badge badge-amber">Perlu Verifikasi</span>';
+    } else {
+        statusBadge = '<span class="badge badge-green">Normal</span>';
+    }
 
     let efisiensiBadge;
     if (d.status_efisiensi === 'Balance') {
@@ -947,13 +957,24 @@ function openModal(index) {
     document.body.style.overflow = 'hidden';
 }
 
-function closeModal() {
-    document.getElementById('validasiModal').classList.remove('open');
-    document.body.style.overflow = '';
-}
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('validasiModal');
+    const btnClose = document.getElementById('btnCloseModal');
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
+    function close() {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    btnClose.addEventListener('click', close);
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === this) close();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) close();
+    });
 });
 
 (function () {

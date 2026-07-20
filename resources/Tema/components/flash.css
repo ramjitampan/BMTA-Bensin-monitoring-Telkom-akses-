@@ -1,0 +1,44 @@
+.flash {
+  display: flex; align-items: center; gap: 10px;
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 13px; margin-bottom: 20px; border: 1px solid;
+  animation: fadeUp 0.4s ease both;
+}
+.flash-success { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+.flash-warning { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+.flash-error   { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.flash svg     { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── Alerts ── */
+.alert {
+  border-radius: 0.625rem; padding: 0.75rem 0.875rem;
+  font-size: 0.75rem; line-height: 1.65;
+}
+.alert-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.alert-blue  { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+.alert-red   { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.alert-green { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+
+/* ── Kendaraan flash ── */
+.kend-flash {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 36px;
+  font-size: 13.5px;
+  color: #15803d;
+  font-weight: 500;
+  animation: kFadeIn 0.35s ease;
+}
+.kend-flash i { font-size: 15px; color: #22c55e; }
+.kend-flash-close {
+  margin-left: auto;
+  background: none; border: none; cursor: pointer;
+  color: #86efac; font-size: 20px; line-height: 1;
+  padding: 0 2px; opacity: 0.7; transition: opacity 0.1s;
+}
+.kend-flash-close:hover { opacity: 1; }

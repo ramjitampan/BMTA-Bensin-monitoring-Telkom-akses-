@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Kendaraan;
+
 class FraudService
 {
     private const TOLERANCE_RATIO = 0.4;
@@ -17,7 +19,7 @@ class FraudService
         $totalBobot = 0;
 
         if ($tipe === null) {
-            $kendaraan = \App\Models\Kendaraan::find($data['kendaraan_id']);
+            $kendaraan = Kendaraan::find($data['kendaraan_id']);
             $tipe = $kendaraan->jenis ?? 'R4';
         }
         $bbm = $this->efisiensiService->inferBBM((float) ($data['harga_per_liter'] ?? 0));

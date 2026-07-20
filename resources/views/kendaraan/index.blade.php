@@ -1,306 +1,328 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Kendaraan — Bensin Monitoring</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        merah: { DEFAULT: '#c0392b', tua: '#922b21' }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* ── sticky footer ── */
-        html { height: 100%; }
-        body {
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-            background: #0a0a0a;
-            margin: 0;
-        }
-        #wrap { flex: 1 0 auto; }
+@extends('layout.app')
 
-        /* nav pill */
-        .nav-pill {
-            color: #374151; font-weight: 500; font-size: 13px;
-            padding: 7px 14px; border-radius: 999px;
-            text-decoration: none; white-space: nowrap;
-            transition: background .15s, color .15s;
-        }
-        .nav-pill:hover  { background: #f1f5f9; color: #111; }
-        .nav-pill.active { background: #fee2e2; color: #c0392b; font-weight: 600; }
+@section('title', 'Data Kendaraan')
+@section('meta_description', 'Kelola dan pantau seluruh data kendaraan operasional PT. Telkom Akses Binjai.')
 
-        /* scrollable nav wrapper */
-        .nav-scroll {
-            overflow-x: auto; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; padding-bottom: 2px;
-        }
-        .nav-scroll::-webkit-scrollbar { display: none; }
+@push('styles')
+@vite('resources/Tema/kendaraan/kendaraan.css')
+@endpush
 
-        /* plat */
-        .plat {
-            display: inline-block;
-            background: #fff; color: #111;
-            border-left: 3px solid #c0392b;
-            padding: 5px 10px; border-radius: 5px;
-            font-weight: 800; font-size: 11px;
-            letter-spacing: .12em; white-space: nowrap;
-        }
+@section('content')
 
-        /* table hover */
-        tbody tr { transition: background .1s; }
-        tbody tr:hover { background: #161616; }
+{{-- ══════════════════════════════════════════
+     HERO — matching Data Pegawai design system
+     ══════════════════════════════════════════ --}}
+<section class="hero-bg-kendaraan relative w-full overflow-hidden">
 
-        .accent-bar {
-            height: 2px;
-            background: linear-gradient(90deg,#c0392b 0%,#e74c3c 40%,transparent 100%);
-        }
-    </style>
-</head>
-<body class="font-sans antialiased text-white">
-<div id="wrap">
+    {{-- Decorative circles --}}
+    <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full border-[48px] border-white/[0.04] pointer-events-none hidden md:block"></div>
+    <div class="absolute top-6 right-1/3 w-44 h-44 rounded-full border-[28px] border-white/[0.03] pointer-events-none hidden lg:block"></div>
+    <div class="absolute -bottom-12 left-1/4 w-56 h-56 rounded-full border-[36px] border-white/[0.02] pointer-events-none hidden lg:block"></div>
 
-    {{-- ═══════════════ NAVBAR ═══════════════ --}}
-    <div class="px-4 sm:px-8 pt-4 sm:pt-5">
-        <div class="max-w-6xl mx-auto">
-            <div class="nav-scroll">
-                <nav class="bg-white inline-flex items-center gap-0.5 rounded-full px-1.5 py-1.5 shadow-sm">
-                    <a href="{{ url('/') }}"                  class="nav-pill">Beranda</a>
-                    <a href="{{ route('pegawai.index') }}"    class="nav-pill">Data Pegawai</a>
-                    <a href="{{ route('kendaraan.index') }}"  class="nav-pill active">Data Kendaraan</a>
-                    <a href="{{ route('perjalanan.index') }}" class="nav-pill">Data Perjalanan</a>
-                    <a href="{{ url('/') }}"
-                       class="ml-1.5 inline-flex items-center gap-1.5 bg-merah hover:bg-merah-tua
-                              text-white font-semibold rounded-full px-4 py-2 transition-colors whitespace-nowrap"
-                       style="font-size:13px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z
-                                     M14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z
-                                     M4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z
-                                     M14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                        </svg>
-                        Dashboard Monitoring
-                    </a>
-                </nav>
-            </div>
-        </div>
-    </div>
-
-    {{-- ═══════════════ MAIN ═══════════════ --}}
-    <main class="max-w-6xl mx-auto px-4 sm:px-8 py-7 sm:py-10">
-
-        {{-- Header row --}}
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 sm:gap-4 mb-6 sm:mb-8">
-
-            {{-- Title --}}
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="text-zinc-600 text-[10px] uppercase tracking-[.25em] font-semibold mb-1.5">
-                    Armada Kendaraan
-                </p>
-                <h1 class="text-white text-2xl font-bold tracking-tight">
-                    Data <span class="text-merah">Kendaraan</span>
-                </h1>
-                <div class="w-7 h-0.5 bg-merah mt-2.5 rounded-full"></div>
+                <h1 class="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white">Data Kendaraan</h1>
+                <p class="mt-2 max-w-xl text-sm text-white/70">Kelola dan pantau seluruh kendaraan operasional perusahaan secara terpusat.</p>
             </div>
-
-            {{-- Stat + CTA — side by side always --}}
-            <div class="flex items-center gap-3 sm:mt-1">
-                <div class="border border-zinc-800 rounded-xl px-5 py-2.5 text-center bg-[#111] min-w-[64px]">
-                    <p class="text-zinc-600 text-[9px] uppercase tracking-widest font-semibold">Total</p>
-                    <p class="text-white font-bold text-xl leading-none mt-0.5">{{ $kendaraans->count() }}</p>
-                </div>
+            <div class="flex-shrink-0">
                 <a href="{{ route('kendaraan.create') }}"
-                   class="inline-flex items-center gap-2 bg-merah hover:bg-merah-tua
-                          text-white text-sm font-semibold px-5 py-3 rounded-xl
-                          transition-colors whitespace-nowrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span class="hidden sm:inline">Tambah Kendaraan</span>
-                    <span class="sm:hidden">Tambah</span>
+                   class="group inline-flex items-center gap-3 rounded-2xl border border-white/80 bg-white px-6 py-3 text-sm font-bold text-ta-dark shadow-xl transition-all duration-200 hover:-translate-y-1 hover:bg-ta-soft hover:shadow-2xl">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-ta-red transition-colors group-hover:bg-ta-dark">
+                        <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    </span>
+                    Tambah Kendaraan
                 </a>
             </div>
         </div>
+    </div>
+</section>
 
-        {{-- ── DESKTOP TABLE (md+) ── --}}
-        <div class="hidden md:block bg-[#111] border border-zinc-800/80 rounded-2xl overflow-hidden">
-            <div class="accent-bar"></div>
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-zinc-800/80" style="background:#141414;">
-                        <th class="text-left text-zinc-600 font-semibold text-[10px] uppercase tracking-[.18em] px-6 py-3.5">Plat Nomor</th>
-                        <th class="text-left text-zinc-600 font-semibold text-[10px] uppercase tracking-[.18em] px-6 py-3.5">Merk</th>
-                        <th class="text-left text-zinc-600 font-semibold text-[10px] uppercase tracking-[.18em] px-6 py-3.5">Jenis</th>
-                        <th class="text-left text-zinc-600 font-semibold text-[10px] uppercase tracking-[.18em] px-6 py-3.5">Tahun</th>
-                        <th class="text-right text-zinc-600 font-semibold text-[10px] uppercase tracking-[.18em] px-6 py-3.5">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-800/50">
-                    @forelse ($kendaraans as $kendaraan)
-                    @php
-                        $j = strtolower($kendaraan->jenis);
-                        if (str_contains($j,'motor')||$j==='r2') {
-                            $dot='#f87171'; $pill='background:rgba(127,29,29,.4);color:#fca5a5;border:1px solid rgba(185,28,28,.35);';
-                        } elseif (str_contains($j,'mobil')||$j==='r4') {
-                            $dot='#60a5fa'; $pill='background:rgba(30,58,138,.4);color:#93c5fd;border:1px solid rgba(29,78,216,.35);';
-                        } else {
-                            $dot='#a1a1aa'; $pill='background:rgba(39,39,42,.8);color:#d4d4d8;border:1px solid rgba(63,63,70,.5);';
-                        }
-                    @endphp
-                    <tr>
-                        <td class="px-6 py-4"><span class="plat">{{ $kendaraan->plat_nomor }}</span></td>
-                        <td class="px-6 py-4"><span class="text-white font-semibold text-sm">{{ $kendaraan->merk }}</span></td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full" style="{{ $pill }}">
-                                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:{{ $dot }};"></span>
-                                {{ $kendaraan->jenis }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4"><span class="text-zinc-400 text-sm font-mono">{{ $kendaraan->tahun }}</span></td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('kendaraan.edit', $kendaraan->id) }}"
-                                   class="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white
-                                          px-3.5 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500
-                                          bg-zinc-800/60 hover:bg-zinc-700 transition-all">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                    </svg>
-                                    Edit
-                                </a>
-                                <form action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST" class="inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Hapus kendaraan ini?')"
-                                            class="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 hover:text-white
-                                                   px-3.5 py-2 rounded-lg border border-red-900/50 hover:border-merah
-                                                   bg-red-950/30 hover:bg-merah transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                        Hapus
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="py-20 text-center">
-                            <p class="text-zinc-400 text-sm font-medium">Belum ada data kendaraan</p>
-                            <p class="text-zinc-700 text-xs mt-1">Tambah kendaraan pertama untuk memulai</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+{{-- ══════════════════════════════════════════
+     BODY
+     ══════════════════════════════════════════ --}}
+<div class="kend-body">
+<div class="kend-container">
+
+    {{-- Flash --}}
+    @if(session('success'))
+    <div class="kend-flash" id="kFlash">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>{{ session('success') }}</span>
+        <button class="kend-flash-close" onclick="document.getElementById('kFlash').remove()">×</button>
+    </div>
+    @endif
+
+    @php
+        $totalR4 = $kendaraans->filter(fn($k) =>
+            str_contains(strtolower($k->jenis),'mobil') || strtolower($k->jenis)==='r4'
+        )->count();
+    @endphp
+
+    {{-- Top row: Stats + Search --}}
+    <div class="kend-top-row">
+
+        {{-- Stats --}}
+        <div class="kend-stats">
+            <div class="kend-stat">
+                <span class="kend-stat-num" id="kCountDisplay">{{ count($kendaraans) }}</span>
+                <span class="kend-stat-label">Kendaraan<br>Operasional</span>
+            </div>
+            <div class="kend-stat">
+                <span class="kend-stat-num c-blue">{{ $totalR4 }}</span>
+                <span class="kend-stat-label">Kendaraan<br>R4</span>
+            </div>
         </div>
 
-        {{-- ── MOBILE CARDS (< md) ── --}}
-        <div class="md:hidden space-y-3">
-            @forelse ($kendaraans as $kendaraan)
-            @php
-                $j = strtolower($kendaraan->jenis);
-                if (str_contains($j,'motor')||$j==='r2') {
-                    $dot='#f87171'; $pill='background:rgba(127,29,29,.4);color:#fca5a5;border:1px solid rgba(185,28,28,.35);';
-                } elseif (str_contains($j,'mobil')||$j==='r4') {
-                    $dot='#60a5fa'; $pill='background:rgba(30,58,138,.4);color:#93c5fd;border:1px solid rgba(29,78,216,.35);';
-                } else {
-                    $dot='#a1a1aa'; $pill='background:rgba(39,39,42,.8);color:#d4d4d8;border:1px solid rgba(63,63,70,.5);';
-                }
-            @endphp
-            <div style="background:#111;border:1px solid rgba(63,63,70,.6);border-radius:12px;padding:1rem;">
-                {{-- Info row --}}
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="plat">{{ $kendaraan->plat_nomor }}</span>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-white font-semibold text-sm leading-tight truncate">{{ $kendaraan->merk }}</p>
-                        <p class="text-zinc-500 text-xs font-mono mt-0.5">{{ $kendaraan->tahun }}</p>
-                    </div>
-                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0"
-                          style="{{ $pill }}">
-                        <span class="w-1.5 h-1.5 rounded-full" style="background:{{ $dot }};"></span>
-                        {{ $kendaraan->jenis }}
-                    </span>
-                </div>
-                {{-- Action row --}}
-                <div class="flex gap-2 pt-3 border-t border-zinc-800">
-                    <a href="{{ route('kendaraan.edit', $kendaraan->id) }}"
-                       class="flex-1 inline-flex items-center justify-center gap-1.5
-                              text-xs font-medium text-zinc-300 hover:text-white
-                              py-2.5 rounded-lg border border-zinc-700 bg-zinc-800/60
-                              hover:bg-zinc-700 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                        Edit
-                    </a>
-                    <form action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST" class="flex-1">
-                        @csrf @method('DELETE')
-                        <button type="submit" onclick="return confirm('Hapus kendaraan ini?')"
-                                class="w-full inline-flex items-center justify-center gap-1.5
-                                       text-xs font-medium text-red-400 hover:text-white
-                                       py-2.5 rounded-lg border border-red-900/60
-                                       bg-red-950/40 hover:bg-merah hover:border-merah transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Hapus
-                        </button>
-                    </form>
-                </div>
-            </div>
-            @empty
-            <div class="text-center py-16">
-                <p class="text-zinc-400 text-sm font-medium">Belum ada data kendaraan</p>
-                <p class="text-zinc-700 text-xs mt-1">Tambah kendaraan pertama untuk memulai</p>
-            </div>
-            @endforelse
-        </div>
-
-        <p class="mt-3 text-zinc-700 text-xs px-1">
-            Menampilkan <span class="text-zinc-500 font-semibold">{{ $kendaraans->count() }}</span> kendaraan
-        </p>
-
-    </main>
-</div>{{-- #wrap --}}
-
-{{-- ═══════════════ FOOTER — always sticks to bottom ═══════════════ --}}
-<footer style="border-top:1px solid rgba(63,63,70,.35);flex-shrink:0;">
-    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-7">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {{-- Brand --}}
-            <div class="flex items-center gap-3 sm:gap-4">
-                <img src="{{ asset('asset/foto/image.png') }}"
-                     alt="Telkom Akses"
-                     class="h-10 sm:h-12 w-auto object-contain"
-                     style="filter:brightness(1.1);">
-                <div class="hidden sm:block w-px h-8 bg-zinc-800"></div>
-                <div>
-                    <p class="text-zinc-300 text-xs font-semibold">Bensin Monitoring</p>
-                    <p class="text-zinc-600 text-[10px] mt-0.5">PT Telkom Akses — Sistem Pemantauan BBM</p>
-                </div>
-            </div>
-            {{-- Copyright --}}
-            <p class="text-zinc-700 text-[10px]">&copy; {{ date('Y') }} PT Telkom Akses. All rights reserved.</p>
+        {{-- Search --}}
+        <div class="kend-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                id="kSearchInput"
+                type="text"
+                placeholder="Cari kendaraan… contoh: BK 9868 TAZ, Toyota Avanza, R4"
+                autocomplete="off"
+            >
+            <button class="kend-search-clear" id="kClearSearch" aria-label="Hapus pencarian">×</button>
         </div>
     </div>
-</footer>
 
-</body>
-</html>
+    @if(count($kendaraans) > 0)
+
+    {{-- List header --}}
+    <div class="kend-list-header kend-list-desktop">
+        <span class="kend-list-label">Daftar Kendaraan</span>
+        <span class="kend-list-count">
+            Menampilkan <b id="kVisibleCount">{{ count($kendaraans) }}</b>
+            dari {{ count($kendaraans) }} kendaraan
+        </span>
+    </div>
+
+    {{-- ═══ DESKTOP LIST ═══ --}}
+    <div class="kend-list kend-list-desktop" id="kVehList">
+
+        @foreach($kendaraans as $i => $kendaraan)
+        @php
+            $j = strtolower($kendaraan->jenis);
+            if      (str_contains($j,'mobil') || $j === 'r4')   { $pc = 'badge-r4';     $jLabel = 'Mobil R4'; $ico = 'fa-car'; }
+            elseif  (str_contains($j,'pickup'))                  { $pc = 'badge-pickup'; $jLabel = 'Pickup';   $ico = 'fa-truck-pickup'; }
+            elseif  (str_contains($j,'truck'))                   { $pc = 'badge-truck';  $jLabel = 'Truck';    $ico = 'fa-truck'; }
+            else                                                 { $pc = 'badge-lain';   $jLabel = ucfirst($kendaraan->jenis); $ico = 'fa-car-side'; }
+        @endphp
+        <div class="kend-row"
+             data-plat="{{ strtolower($kendaraan->plat_nomor) }}"
+             data-merk="{{ strtolower($kendaraan->merk) }}"
+             data-jenis="{{ strtolower($kendaraan->jenis) }}">
+
+            <div class="kend-row-icon">
+                <i class="fa-solid {{ $ico }}"></i>
+            </div>
+
+            <div class="kend-row-main">
+                <div class="kend-row-plat">{{ $kendaraan->plat_nomor }}</div>
+                <div class="kend-row-meta">
+                    <span class="kend-row-merk">{{ $kendaraan->merk }}</span>
+                    <span class="kend-row-sep">·</span>
+                    <span class="kend-row-year">{{ $kendaraan->tahun }}</span>
+                </div>
+            </div>
+
+            <div class="kend-badges">
+                <span class="kend-badge {{ $pc }}">
+                    <span class="kend-badge-dot"></span>{{ $jLabel }}
+                </span>
+                <span class="kend-badge badge-aktif">
+                    <span class="kend-badge-dot"></span>Aktif
+                </span>
+            </div>
+
+            <span class="kend-row-id">#{{ str_pad($kendaraan->id, 3, '0', STR_PAD_LEFT) }}</span>
+
+            <div class="kend-row-actions">
+                <a href="{{ route('kendaraan.edit', $kendaraan->id) }}"
+                   class="kend-act-btn edit"
+                   title="Edit kendaraan">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <form action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST" style="display:inline">
+                    @csrf @method('DELETE')
+                    <button type="button"
+                            class="kend-act-btn del"
+                            title="Hapus kendaraan"
+                            onclick="kConfirmDelete(this,'{{ addslashes($kendaraan->plat_nomor) }}')">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endforeach
+
+        <div class="kend-no-result" id="kNoResult">
+            <strong>Tidak ada hasil</strong>
+            <p>Tidak ditemukan kendaraan yang cocok dengan pencarian.</p>
+        </div>
+    </div>
+
+    {{-- ═══ MOBILE CARDS ═══ --}}
+    <div class="kend-cards" id="kCards">
+        @foreach($kendaraans as $i => $kendaraan)
+        @php
+            $j = strtolower($kendaraan->jenis);
+            if      (str_contains($j,'mobil') || $j === 'r4')   { $pc = 'badge-r4';     $jLabel = 'Mobil R4'; $ico = 'fa-car'; }
+            elseif  (str_contains($j,'pickup'))                  { $pc = 'badge-pickup'; $jLabel = 'Pickup';   $ico = 'fa-truck-pickup'; }
+            elseif  (str_contains($j,'truck'))                   { $pc = 'badge-truck';  $jLabel = 'Truck';    $ico = 'fa-truck'; }
+            else                                                 { $pc = 'badge-lain';   $jLabel = ucfirst($kendaraan->jenis); $ico = 'fa-car-side'; }
+        @endphp
+        <div class="kend-card"
+             data-plat="{{ strtolower($kendaraan->plat_nomor) }}"
+             data-merk="{{ strtolower($kendaraan->merk) }}"
+             data-jenis="{{ strtolower($kendaraan->jenis) }}">
+            <div class="kend-card-body">
+                <div class="kend-row-icon">
+                    <i class="fa-solid {{ $ico }}"></i>
+                </div>
+                <div class="kend-card-info">
+                    <div class="kend-card-plat">{{ $kendaraan->plat_nomor }}</div>
+                    <div class="kend-card-sub">{{ $kendaraan->merk }} · {{ $kendaraan->tahun }}</div>
+                    <div class="kend-card-badges">
+                        <span class="kend-badge {{ $pc }}"><span class="kend-badge-dot"></span>{{ $jLabel }}</span>
+                        <span class="kend-badge badge-aktif"><span class="kend-badge-dot"></span>Aktif</span>
+                    </div>
+                </div>
+            </div>
+            <div class="kend-card-foot">
+                <a href="{{ route('kendaraan.edit', $kendaraan->id) }}" class="kend-card-btn edit">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                </a>
+                <form action="{{ route('kendaraan.destroy', $kendaraan->id) }}" method="POST" style="flex:1;display:flex">
+                    @csrf @method('DELETE')
+                    <button type="button"
+                            class="kend-card-btn del"
+                            style="flex:1;border:none"
+                            onclick="kConfirmDelete(this,'{{ addslashes($kendaraan->plat_nomor) }}')">
+                        <i class="fa-solid fa-trash-can"></i> Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    <div class="px-4 pb-4">
+        {{ $kendaraans->links() }}
+    </div>
+
+    @else
+
+    {{-- Empty state --}}
+    <div class="kend-empty">
+        <div class="kend-empty-icon">
+            <i class="fa-solid fa-truck"></i>
+        </div>
+        <h3>Belum Ada Kendaraan</h3>
+        <p>Tambahkan kendaraan pertama untuk mulai memantau penggunaan BBM operasional.</p>
+        <a href="{{ route('kendaraan.create') }}" class="kend-btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            Tambah Kendaraan Pertama
+        </a>
+    </div>
+
+    @endif
+
+</div>
+</div>
+
+{{-- ══════════════════════════════════════════
+     DELETE MODAL
+     ══════════════════════════════════════════ --}}
+<div id="kDeleteModal" class="kend-modal-wrap" role="dialog" aria-modal="true" aria-labelledby="kModalTitle">
+    <div class="kend-modal-box">
+        <div class="kend-modal-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 id="kModalTitle">Hapus Kendaraan?</h3>
+        <p>Anda akan menghapus kendaraan dengan plat nomor:</p>
+        <div class="kend-modal-plat">
+            <strong id="kDeleteName"></strong>
+            <small>Data tidak dapat dipulihkan setelah dihapus.</small>
+        </div>
+        <div class="kend-modal-actions">
+            <button class="kend-modal-btn cancel" onclick="kCloseModal()">Batal</button>
+            <button class="kend-modal-btn confirm" id="kConfirmBtn">Ya, Hapus</button>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
+<script>
+(function () {
+    /* ── Search ── */
+    const input   = document.getElementById('kSearchInput');
+    const clear   = document.getElementById('kClearSearch');
+    const counter = document.getElementById('kVisibleCount');
+    const noRes   = document.getElementById('kNoResult');
+    const rows    = Array.from(document.querySelectorAll('#kVehList .kend-row'));
+    const cards   = Array.from(document.querySelectorAll('#kCards .kend-card'));
+
+    function doSearch(q) {
+        q = q.trim().toLowerCase();
+        clear.style.display = q ? 'flex' : 'none';
+        let n = 0;
+        function matchEl(el) {
+            const ok = !q
+                || (el.dataset.plat  || '').includes(q)
+                || (el.dataset.merk  || '').includes(q)
+                || (el.dataset.jenis || '').includes(q);
+            el.style.display = ok ? '' : 'none';
+            if (ok) n++;
+        }
+        rows.forEach(matchEl);
+        cards.forEach(matchEl);
+        if (counter) counter.textContent = n;
+        if (noRes)   noRes.style.display = (q && n === 0) ? 'block' : 'none';
+    }
+
+    if (input) {
+        input.addEventListener('input', () => doSearch(input.value));
+        if (clear) clear.addEventListener('click', () => { input.value = ''; doSearch(''); input.focus(); });
+    }
+
+    /* ── Entrance animation ── */
+    const all = [...rows, ...cards];
+    all.forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(12px)';
+        el.style.transition = `opacity 0.32s ease ${i * 45}ms, transform 0.32s ease ${i * 45}ms`;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }));
+    });
+})();
+
+/* ── Delete modal ── */
+let _kPendingForm = null;
+
+function kConfirmDelete(btn, plat) {
+    _kPendingForm = btn.closest('form');
+    document.getElementById('kDeleteName').textContent = plat;
+    document.getElementById('kDeleteModal').classList.add('open');
+}
+function kCloseModal() {
+    document.getElementById('kDeleteModal').classList.remove('open');
+    _kPendingForm = null;
+}
+
+document.getElementById('kConfirmBtn').addEventListener('click', function () {
+    if (_kPendingForm) _kPendingForm.submit();
+});
+document.getElementById('kDeleteModal').addEventListener('click', function (e) {
+    if (e.target === this) kCloseModal();
+});
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') kCloseModal();
+});
+</script>
+@endpush

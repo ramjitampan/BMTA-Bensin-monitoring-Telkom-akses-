@@ -1,0 +1,59 @@
+:root {
+  --ta-red:        #E2001A;
+  --ta-dark:       #B10014;
+  --ta-darker:     #7A000D;
+  --ta-soft:       #FEE8EB;
+  --ta-ink:        #000000;
+  --ta-muted:      #47494c;
+  --ta-bg:         #F8F8FA;
+  --ta-border:     #E5E7EB;
+
+  --ta-red-50:     #fef2f2;
+  --ta-red-100:    #fee2e2;
+  --ta-red-200:    #fecaca;
+  --ta-red-400:    #f87171;
+  --ta-red-500:    #ef4444;
+  --ta-red-600:    #dc2626;
+  --ta-red-700:    #b91c1c;
+  --ta-red-800:    #991b1b;
+  --ta-red-900:    #7f1d1d;
+  --ta-red-950:    #450a0a;
+
+  --ta-blue-50:    #eff6ff;
+  --ta-blue-200:   #bfdbfe;
+  --ta-blue-500:   #3b82f6;
+  --ta-blue-600:   #2563eb;
+
+  --ta-amber-50:   #fffbeb;
+  --ta-amber-200:  #fde68a;
+  --ta-amber-500:  #f59e0b;
+  --ta-amber-600:  #d97706;
+
+  --ta-green-50:   #f0fdf4;
+  --ta-green-200:  #bbf7d0;
+  --ta-green-400:  #4ade80;
+  --ta-green-500:  #22c55e;
+  --ta-green-600:  #16a34a;
+
+  --ta-gray-50:    #f9fafb;
+  --ta-gray-100:   #f3f4f6;
+  --ta-gray-200:   #e5e7eb;
+  --ta-gray-300:   #d1d5db;
+  --ta-gray-400:   #9ca3af;
+  --ta-gray-500:   #6b7280;
+  --ta-gray-600:   #4b5563;
+  --ta-gray-700:   #374151;
+  --ta-gray-800:   #1f2937;
+
+  --ta-white:      #ffffff;
+  --ta-white-50:   rgba(255,255,255,0.5);
+  --ta-white-70:   rgba(255,255,255,0.7);
+  --ta-white-82:   rgba(255,255,255,0.82);
+  --ta-white-90:   rgba(255,255,255,0.9);
+
+  --ta-black:      #000000;
+  --ta-dark-bg:    #0d0d0d;
+  --ta-dark-card:  #141414;
+  --ta-dark-field: #1a1a1a;
+  --ta-dark-border:#2d2d2d;
+}

@@ -12,7 +12,7 @@ return new class extends Migration
         $table->id();
         $table->string('plat_nomor')->unique();
         $table->string('merk');
-        $table->enum('tipe', ['R2','R4']);
+        $table->enum('tipe', ['R4']);
         $table->year('tahun');
         $table->timestamps();
     });

@@ -1,0 +1,9 @@
+@import './shared.css';
+
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+body { background: #f3f4f6; min-height: 100vh; }
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ── Foto preview ── */
+.foto-preview { display: none; margin-top: 0.75rem; border-radius: 0.75rem; overflow: hidden; border: 1.5px solid #e5e7eb; max-height: 180px; object-fit: cover; width: 100%; }
+.foto-preview.is-visible { display: block; }

@@ -1,190 +1,12 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Data BBM — PT Telkom Akses Binjai</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; box-sizing: border-box; }
-        body { background: #f3f4f6; min-height: 100vh; }
-        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+@extends('layout.app')
 
-        /* ── Field base ── */
-        .field {
-            display: block; width: 100%;
-            height: 2.625rem;
-            border: 1.5px solid #e5e7eb; border-radius: 0.625rem;
-            background: #fff; padding: 0 0.875rem;
-            font-size: 0.875rem; color: #1f2937;
-            transition: border-color .15s, box-shadow .15s;
-            appearance: none;
-        }
-        .field::placeholder { color: #9ca3af; }
-        .field:focus { outline: none; border-color: #CC0000; box-shadow: 0 0 0 3px rgba(204,0,0,.08); }
-        .field-error { border-color: #ef4444 !important; background: #fff5f5; }
-        .field-readonly { background: #eff6ff; color: #2563eb; font-weight: 600; cursor: not-allowed; }
-        select.field { cursor: pointer; }
-        textarea.field { height: auto; padding: 0.625rem 0.875rem; resize: none; }
+@section('title', 'Tambah Data BBM — PT Telkom Akses Binjai')
 
-        /* ── Label ── */
-        .label {
-            display: block;
-            font-size: 0.7rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.07em;
-            color: #6b7280; margin-bottom: 0.375rem;
-        }
-        .label-badge {
-            font-size: 0.65rem; font-weight: 500;
-            text-transform: none; letter-spacing: 0;
-            color: #9ca3af; margin-left: 0.25rem;
-        }
-        .label-required { color: #ef4444; margin-left: 0.125rem; }
+@push('styles')
+@vite('resources/Tema/perjalanan/create.css')
+@endpush
 
-        /* ── Error / hint ── */
-        .error-msg { margin-top: 0.25rem; font-size: 0.72rem; color: #ef4444; }
-        .hint-msg  { margin-top: 0.3rem;  font-size: 0.72rem; color: #9ca3af; line-height: 1.5; }
-
-        /* ── Card ── */
-        .card {
-            background: #fff; border-radius: 1rem;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 4px rgba(0,0,0,.05);
-            padding: 1.375rem;
-        }
-        .card-title {
-            display: flex; align-items: center; gap: 0.5rem;
-            font-size: 0.68rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.1em; color: #CC0000;
-            padding-bottom: 0.875rem; margin-bottom: 1.125rem;
-            border-bottom: 1px solid #f3f4f6;
-        }
-        .card-title svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-        /* ── Chip / badge ── */
-        .chip {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            font-size: 0.7rem; font-weight: 500;
-            padding: 0.25rem 0.625rem; border-radius: 9999px; margin-top: 0.375rem;
-        }
-        .chip-blue   { background: #eff6ff; color: #1d4ed8; }
-        .chip-green  { background: #f0fdf4; color: #16a34a; }
-        .chip-red    { background: #fef2f2; color: #dc2626; }
-        .chip-amber  { background: #fffbeb; color: #d97706; }
-
-        /* ── Alert box ── */
-        .alert {
-            border-radius: 0.625rem; padding: 0.75rem 0.875rem;
-            font-size: 0.75rem; line-height: 1.65;
-        }
-        .alert-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
-        .alert-blue  { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
-        .alert-red   { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
-
-        /* ── Step wizard ── */
-        .wizard { display: flex; gap: 0; border-radius: 0.875rem; overflow: hidden; border: 1.5px solid #e5e7eb; background: #fff; }
-        .wizard-step {
-            flex: 1; display: flex; align-items: center; gap: 0.625rem;
-            padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 500;
-            color: #9ca3af; cursor: pointer;
-            border-right: 1.5px solid #e5e7eb;
-            transition: background .2s, color .2s;
-        }
-        .wizard-step:last-child { border-right: none; }
-        .wizard-step.is-active { background: #CC0000; color: #fff; }
-        .wizard-step.is-done   { background: #f0fdf4; color: #16a34a; }
-        .wizard-num {
-            width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.65rem; font-weight: 700;
-            border: 1.5px solid currentColor;
-        }
-        .wizard-step.is-active .wizard-num { background: #fff; color: #CC0000; border-color: #fff; }
-        .wizard-step.is-done   .wizard-num { background: #16a34a; color: #fff; border-color: #16a34a; }
-
-        /* ── Progress bar ── */
-        .progress-track { height: 3px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
-        .progress-fill  { height: 100%; background: #CC0000; border-radius: 9999px; transition: width .35s ease; }
-
-        /* ── Preview cards ── */
-        .preview-wrap {
-            display: none;
-            border-radius: 0.875rem; border: 1px solid #bfdbfe;
-            background: #eff6ff; padding: 1rem;
-        }
-        .preview-wrap.is-visible { display: block; animation: fadeUp .2s ease; }
-        .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; margin-top: 0.75rem; }
-        .pv-card {
-            background: #fff; border-radius: 0.75rem;
-            border: 1.5px solid #dbeafe; padding: 0.75rem;
-            text-align: center; transition: border-color .2s;
-        }
-        .pv-label { font-size: 0.65rem; color: #9ca3af; margin-bottom: 0.25rem; }
-        .pv-value { font-size: 1rem; font-weight: 700; color: #1f2937; transition: color .2s; }
-
-        /* ── Buttons ── */
-        .btn-primary {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            background: #CC0000; color: #fff;
-            font-size: 0.875rem; font-weight: 600;
-            padding: 0.625rem 1.375rem; border-radius: 0.75rem;
-            border: none; cursor: pointer; transition: background .15s, transform .1s;
-        }
-        .btn-primary:hover  { background: #a80000; }
-        .btn-primary:active { transform: scale(.98); }
-        .btn-secondary {
-            display: inline-flex; align-items: center; gap: 0.375rem;
-            background: #fff; color: #6b7280;
-            font-size: 0.875rem; font-weight: 500;
-            padding: 0.625rem 1rem; border-radius: 0.75rem;
-            border: 1.5px solid #e5e7eb; cursor: pointer;
-            text-decoration: none; transition: background .15s;
-        }
-        .btn-secondary:hover { background: #f9fafb; }
-
-        /* ── Section ── */
-        .section { animation: fadeUp .22s ease both; }
-        .section.is-hidden { display: none !important; }
-
-        /* ── Animations ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── Responsive grid ── */
-        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        @media (max-width: 560px) {
-            .grid-2 { grid-template-columns: 1fr; }
-            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
-        }
-    </style>
-</head>
-<body>
-
-{{-- ══════════════════════════════════════════════
-     NAVBAR
-══════════════════════════════════════════════ --}}
-<nav style="background:#CC0000;position:sticky;top:0;z-index:30;box-shadow:0 2px 8px rgba(0,0,0,.18);">
-    <div style="max-width:44rem;margin:0 auto;padding:0 1.25rem;height:3.5rem;display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:0.75rem;">
-            <div style="width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                {{-- <img src="{{ asset('images/logo.png') }}" style="width:100%;object-fit:contain"> --}}
-                <span style="color:#CC0000;font-weight:900;font-size:.65rem;">TA</span>
-            </div>
-            <div>
-                <p style="color:#fff;font-weight:700;font-size:.875rem;margin:0;">Telkom Akses Binjai</p>
-                <p style="color:rgba(255,255,255,.65);font-size:.7rem;margin:0;">Tambah Data Perjalanan &amp; BBM</p>
-            </div>
-        </div>
-        <a href="{{ route('perjalanan.index') }}"
-           style="color:rgba(255,255,255,.85);font-size:.75rem;border:1px solid rgba(255,255,255,.3);border-radius:.5rem;padding:.35rem .875rem;text-decoration:none;transition:background .15s;"
-           onmouseover="this.style.background='rgba(255,255,255,.12)'"
-           onmouseout="this.style.background='transparent'">← Kembali</a>
-    </div>
-</nav>
-
+@section('content')
 <main style="max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem 3rem;">
 
     {{-- ── Global validation errors ── --}}
@@ -486,35 +308,9 @@
     </form>
 </main>
 
-{{-- ══════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════ --}}
-<footer style="background:#111827;color:#9ca3af;margin-top:2rem;">
-    <div style="max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;">
-        <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:1.25rem;">
-            <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem;">
-                <div style="width:2.25rem;height:2.25rem;border-radius:50%;background:#CC0000;display:flex;align-items:center;justify-content:center;">
-                    <span style="color:#fff;font-weight:900;font-size:.75rem;">TA</span>
-                </div>
-                <p style="color:#f9fafb;font-weight:600;font-size:.8rem;margin:0;text-align:center;">PT Telkom Akses</p>
-                <p style="font-size:.7rem;margin:0;">Branch Binjai</p>
-            </div>
-            <div style="width:1px;background:#374151;align-self:stretch;"></div>
-            <div>
-                <p style="color:#f3f4f6;font-size:.875rem;font-weight:500;margin:0 0 .375rem;">Sistem Informasi Pengelolaan BBM</p>
-                <p style="font-size:.78rem;line-height:1.6;margin:0;color:#6b7280;">Monitoring biaya bahan bakar kendaraan operasional<br>dengan validasi transaksi otomatis.</p>
-            </div>
-        </div>
-        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #1f2937;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;font-size:.7rem;">
-            <p style="margin:0;">&copy; {{ date('Y') }} PT Telkom Akses Binjai. All rights reserved.</p>
-            <p style="margin:0;color:#4b5563;">v1.0 &middot; TIF-2954/2026</p>
-        </div>
-    </div>
-</footer>
+@endsection
 
-{{-- ══════════════════════════════════════════════
-     JAVASCRIPT — pure vanilla, fungsi terpisah
-══════════════════════════════════════════════ --}}
+@push('scripts')
 <script>
 /* ── Data km terakhir dari Laravel ── */
 const KM_DATA = {
@@ -567,7 +363,6 @@ function updateHint() {
     const kendaraanId = document.getElementById('kendaraan_id').value;
     const km          = KM_DATA[kendaraanId];
 
-    /* Chip di step 1 */
     const chip = document.getElementById('hintKendaraan');
     if (km) {
         chip.textContent = 'Odometer terakhir: ' + Number(km).toLocaleString('id-ID') + ' km';
@@ -576,7 +371,6 @@ function updateHint() {
         chip.style.display = 'none';
     }
 
-    /* Alert di step 2 */
     const box    = document.getElementById('hintOdometerBox');
     const kmLama = document.getElementById('km_lama');
     if (km) {
@@ -628,8 +422,6 @@ function updateVolume() {
 
 /* ══════════════════════════════════════════════
    PREVIEW — tampilkan kalkulasi di UI
-   Catatan: backend (Model Perjalanan) adalah
-   source of truth. JS hanya untuk preview UI.
 ══════════════════════════════════════════════ */
 function updatePreview() {
     const kmLama  = parseFloat(document.getElementById('km_lama').value);
@@ -729,5 +521,4 @@ window.addEventListener('DOMContentLoaded', function () {
     updatePreview();
 });
 </script>
-</body>
-</html>
+@endpush

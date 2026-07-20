@@ -18,7 +18,7 @@ class UpdateKendaraanRequest extends FormRequest
         return [
             'plat_nomor' => 'required|string|unique:kendaraans,plat_nomor,' . $id,
             'merk'       => 'required|string|max:255',
-            'jenis'      => 'required|in:R2,R4',
+            'jenis'      => 'required|in:R4',
             'tahun'      => 'required|digits:4|integer|min:1900|max:' . date('Y'),
         ];
     }
