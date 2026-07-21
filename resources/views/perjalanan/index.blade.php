@@ -462,7 +462,7 @@ const perjalananData = @json($perjalananJson->values());
 
 function openModal(index) {
     const d = perjalananData[index];
-    if (!d) return;
+    if (!d) { return; }
 
     let statusBadge;
     if (d.status_validasi === 'Anomali') {
@@ -494,7 +494,7 @@ function openModal(index) {
         flagsHtml = '<span class="muted">—</span>';
     }
 
-    document.getElementById('validasiModalBody').innerHTML = `
+    const modalHtml = `
         <div class="detail-grid">
             <div class="detail-field">
                 <span class="label">Tanggal</span>
@@ -562,6 +562,7 @@ function openModal(index) {
             <div class="value">${d.alasan}</div>
         </div>
     `;
+    document.getElementById('validasiModalBody').innerHTML = modalHtml;
     document.getElementById('validasiModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
